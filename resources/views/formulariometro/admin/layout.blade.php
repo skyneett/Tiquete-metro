@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solicitud Perfil Estudiantil - Tiquete Metro</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Handsontable Community CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.full.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.full.min.js"></script>
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
             min-height: 100vh;
@@ -94,18 +98,11 @@
     </style>
 </head>
 <body>
-    @if (!request()->routeIs('metro.login') && !request()->routeIs('admin.metro.ver-formulario') && empty($sinSidebar))
-        @include('formulariometro.partials.sidebar')
-        <main class="main-content">
-            <div class="container-fluid">
-                @yield('content')
-            </div>
-        </main>
-    @else
-        <div class="container-fluid py-3">
-            @yield('content')
-        </div>
-    @endif
+    @include('formulariometro.partials.sidebar')
+
+    <main class="main-content">
+        @yield('content')
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     @yield('scripts')

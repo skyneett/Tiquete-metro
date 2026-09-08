@@ -24,6 +24,10 @@ use App\Models\formulariometro\MetroDatosPersonalesActual;
 
 class TiqueteMetroController extends Controller
 {
+    // TODO: reemplazar esta lista fija por una consulta real de roles 
+    // cuando se implemente el sistema de autenticación/roles definitivo.
+    private const CEDULAS_ADMIN = ['1001663829']; // ejemplo, ajustar
+
     public function loginView()
     {
         return view('formulariometro.login');
@@ -37,14 +41,31 @@ class TiqueteMetroController extends Controller
             'documento.required' => 'Por favor ingresa tu número de documento.',
         ]);
 
-        session(['cedula_usuario' => trim($request->documento)]);
+        $documento = trim($request->documento);
+        session([
+            'cedula_usuario' => $documento,
+            'es_admin' => in_array($documento, self::CEDULAS_ADMIN),
+        ]);
 
-        return redirect()->route('metro.create');
+        return redirect()->route('metro.inicio');
+    }
+
+    public function inicioView()
+    {
+        $cedula = $this->obtenerCedula();
+
+        if (!$cedula) {
+            return redirect()->route('metro.login')->with('info', 'Por favor ingresa tu número de documento para acceder al portal.');
+        }
+
+        $registroExistente = MetroDatosPersonalesActual::where('documento', $cedula)->first();
+
+        return view('formulariometro.inicio', compact('cedula', 'registroExistente'));
     }
 
     public function logout()
     {
-        session()->forget('cedula_usuario');
+        session()->forget(['cedula_usuario', 'es_admin']);
         return redirect()->route('metro.login')->with('info', 'Sesión cerrada correctamente.');
     }
 
@@ -281,7 +302,11 @@ class TiqueteMetroController extends Controller
             $datosAGuardar
         );
 
-        session(['cedula_usuario' => $request->documento]);
+        $doc = trim($request->documento);
+        session([
+            'cedula_usuario' => $doc,
+            'es_admin' => in_array($doc, self::CEDULAS_ADMIN),
+        ]);
 
         return redirect()->route('metro.create')->with('success', '¡Solicitud guardada y actualizada correctamente!');
     }

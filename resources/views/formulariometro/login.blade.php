@@ -39,14 +39,14 @@
 
                     <div class="d-grid gap-2 mt-4">
                         <button type="submit" class="btn btn-success btn-lg fw-semibold">
-                            Ingresar al Formulario
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión
                         </button>
                     </div>
                 </form>
 
                 <div class="alert alert-light border mt-4 mb-0 small text-muted">
                     <i class="bi bi-info-circle"></i>
-                    <strong>Nota:</strong> Si tu documento ya está registrado, cargaremos tu información previa para que puedas editarla. Si es tu primera vez, ingresarás con el formulario en blanco.
+                    <strong>Nota:</strong> Ingresa tu número de documento registrado. Al ingresar al portal podrás acceder al formulario de inscripción desde el menú lateral.
                 </div>
             </div>
         </div>

@@ -77,9 +77,20 @@
     </div>
 @endif
 
+@if (!empty($soloConsulta))
+    <div class="alert alert-secondary border-dark d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-eye-fill fs-4 me-3 text-dark"></i>
+        <div>
+            <strong class="d-block">Modo de Solo Consulta (Auditoría Administrativa)</strong>
+            <span class="small">Estás visualizando el formulario con los datos registrados por el postulante. Todos los campos se encuentran deshabilitados.</span>
+        </div>
+    </div>
+@endif
+
 <form action="{{ route('metro.store') }}" method="POST" enctype="multipart/form-data" id="formularioMetro" class="was-validated">
     @csrf
     <input type="hidden" name="periodo" value="17">
+    <fieldset {{ !empty($soloConsulta) ? 'disabled' : '' }}>
 
     <div class="mb-3">
         <label class="form-label">¿Por qué vas a diligenciar el formulario?</label>
@@ -440,9 +451,13 @@
         <label class="form-check-label" for="acepta">Acepto</label>
     </div>
 
-    <button type="submit" class="btn btn-primary btn-lg">
-        {{ (isset($registroExistente) && $registroExistente) ? 'Actualizar Solicitud' : 'Enviar Solicitud' }}
-    </button>
+    </fieldset>
+
+    @if (empty($soloConsulta))
+        <button type="submit" class="btn btn-primary btn-lg">
+            {{ (isset($registroExistente) && $registroExistente) ? 'Actualizar Solicitud' : 'Enviar Solicitud' }}
+        </button>
+    @endif
 </form>
 
 <!-- Modal: Documento de identidad -->
@@ -938,6 +953,7 @@ function borradorTieneContenido(datos) {
 }
 
 function guardarBorrador() {
+    @if (!empty($soloConsulta)) return; @endif
     const form = document.getElementById('formularioMetro') || document.querySelector('form');
     if (!form) return;
 
