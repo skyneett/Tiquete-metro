@@ -24,8 +24,49 @@ use App\Models\formulariometro\MetroDatosPersonalesActual;
 
 class TiqueteMetroController extends Controller
 {
+    public function loginView()
+    {
+        return view('formulariometro.login');
+    }
+
+    public function loginPost(Request $request)
+    {
+        $request->validate([
+            'documento' => 'required|string|max:20',
+        ], [
+            'documento.required' => 'Por favor ingresa tu número de documento.',
+        ]);
+
+        session(['cedula_usuario' => trim($request->documento)]);
+
+        return redirect()->route('metro.create');
+    }
+
+    public function logout()
+    {
+        session()->forget('cedula_usuario');
+        return redirect()->route('metro.login')->with('info', 'Sesión cerrada correctamente.');
+    }
+
+    private function obtenerCedula()
+    {
+        if (auth()->check()) {
+            return auth()->user()->documento ?? auth()->user()->cedula ?? auth()->user()->identificacion;
+        }
+
+        return session('cedula_usuario');
+    }
+
     public function create()
     {
+        $cedula = $this->obtenerCedula();
+
+        if (!$cedula) {
+            return redirect()->route('metro.login')->with('info', 'Por favor ingresa tu número de documento para acceder al formulario.');
+        }
+
+        $registroExistente = MetroDatosPersonalesActual::where('documento', $cedula)->first();
+
         $motivos = MotivoDiligenciarFormulario::all();
         $tiposDocumento = TipoDocumento::all();
         $generos = Genero::all();
@@ -42,6 +83,8 @@ class TiqueteMetroController extends Controller
         $orientaciones = Orientacion::all();
 
         return view('formulariometro.formulario', compact(
+            'cedula',
+            'registroExistente',
             'motivos',
             'tiposDocumento',
             'generos',
@@ -118,34 +161,52 @@ class TiqueteMetroController extends Controller
             'archivo_certificado_discapacidad' => 'nullable|file|mimes:pdf,jpg,jpeg|max:2048',
         ]);
 
-        // Construir dirección completa concatenada (texto legible)
-        $direccion = trim(implode(' ', array_filter([
-            $request->dirCampo2, $request->dirCampo3, $request->dirCampo5,
-            $request->dirCampo6, $request->dirCampo8, $request->dirCampo9,
-        ])));
+        // Dirección completa estructurada tal como se arma en el formulario (con vía, # y complementos)
+        $direccion = $request->filled('direccion')
+            ? trim($request->direccion)
+            : trim(implode(' ', array_filter([
+                $request->dirCampo2, $request->dirCampo3, $request->dirCampo5,
+                $request->dirCampo6, $request->dirCampo8, $request->dirCampo9,
+            ])));
 
-        // Guardar archivos si vienen adjuntos
-        $rutaIdentidad = $request->hasFile('archivo_documento_identidad')
-            ? $request->file('archivo_documento_identidad')->store('documentos', 'public')
-            : null;
+        // Guardar archivos si vienen adjuntos con nombres estandarizados: {documento}_{tipo}.{ext}
+        $docLimpio = preg_replace('/[^A-Za-z0-9]/', '', $request->documento);
 
-        $rutaServicios = $request->hasFile('archivo_servicios_publicos')
-            ? $request->file('archivo_servicios_publicos')->store('documentos', 'public')
-            : null;
+        $rutaIdentidad = null;
+        if ($request->hasFile('archivo_documento_identidad')) {
+            $ext = $request->file('archivo_documento_identidad')->getClientOriginalExtension();
+            $rutaIdentidad = $request->file('archivo_documento_identidad')
+                ->storeAs('documentos', "{$docLimpio}_identidad.{$ext}", 'public');
+        }
 
-        $rutaCivica = $request->hasFile('archivo_tarjeta_civica')
-            ? $request->file('archivo_tarjeta_civica')->store('documentos', 'public')
-            : null;
+        $rutaServicios = null;
+        if ($request->hasFile('archivo_servicios_publicos')) {
+            $ext = $request->file('archivo_servicios_publicos')->getClientOriginalExtension();
+            $rutaServicios = $request->file('archivo_servicios_publicos')
+                ->storeAs('documentos', "{$docLimpio}_servicios.{$ext}", 'public');
+        }
 
-        $rutaCertificado = $request->hasFile('archivo_certificado_discapacidad')
-            ? $request->file('archivo_certificado_discapacidad')->store('documentos', 'public')
-            : null;
+        $rutaCivica = null;
+        if ($request->hasFile('archivo_tarjeta_civica')) {
+            $ext = $request->file('archivo_tarjeta_civica')->getClientOriginalExtension();
+            $rutaCivica = $request->file('archivo_tarjeta_civica')
+                ->storeAs('documentos', "{$docLimpio}_civica.{$ext}", 'public');
+        }
 
-        MetroDatosPersonalesActual::create([
+        $rutaCertificado = null;
+        if ($request->hasFile('archivo_certificado_discapacidad')) {
+            $ext = $request->file('archivo_certificado_discapacidad')->getClientOriginalExtension();
+            $rutaCertificado = $request->file('archivo_certificado_discapacidad')
+                ->storeAs('documentos', "{$docLimpio}_discapacidad.{$ext}", 'public');
+        }
+
+        // Buscar registro previo si ya existe para conservar archivos si no se suben nuevos
+        $existente = MetroDatosPersonalesActual::where('documento', $request->documento)->first();
+
+        $datosAGuardar = [
             'periodo' => $request->periodo,
             'motivo' => $request->motivo,
             'tipo_documento' => $request->tipo_documento,
-            'documento' => $request->documento,
             'genero' => $request->genero,
             'cual_genero' => $request->cual_genero,
             'primer_nombre' => $request->primer_nombre,
@@ -189,13 +250,39 @@ class TiqueteMetroController extends Controller
             'fecha_registro' => now()->format('Y-m-d H:i:s'),
             'acepta' => $request->acepta,
             'estado' => 1,
+        ];
 
-            'archivo_documento_identidad' => $rutaIdentidad,
-            'archivo_servicios_publicos' => $rutaServicios,
-            'archivo_tarjeta_civica' => $rutaCivica,
-            'archivo_certificado_discapacidad' => $rutaCertificado,
-        ]);
+        if ($rutaIdentidad) {
+            $datosAGuardar['archivo_documento_identidad'] = $rutaIdentidad;
+        } elseif ($existente && $existente->archivo_documento_identidad) {
+            $datosAGuardar['archivo_documento_identidad'] = $existente->archivo_documento_identidad;
+        }
 
-        return redirect()->route('metro.create')->with('success', '¡Solicitud enviada correctamente!');
+        if ($rutaServicios) {
+            $datosAGuardar['archivo_servicios_publicos'] = $rutaServicios;
+        } elseif ($existente && $existente->archivo_servicios_publicos) {
+            $datosAGuardar['archivo_servicios_publicos'] = $existente->archivo_servicios_publicos;
+        }
+
+        if ($rutaCivica) {
+            $datosAGuardar['archivo_tarjeta_civica'] = $rutaCivica;
+        } elseif ($existente && $existente->archivo_tarjeta_civica) {
+            $datosAGuardar['archivo_tarjeta_civica'] = $existente->archivo_tarjeta_civica;
+        }
+
+        if ($rutaCertificado) {
+            $datosAGuardar['archivo_certificado_discapacidad'] = $rutaCertificado;
+        } elseif ($existente && $existente->archivo_certificado_discapacidad) {
+            $datosAGuardar['archivo_certificado_discapacidad'] = $existente->archivo_certificado_discapacidad;
+        }
+
+        MetroDatosPersonalesActual::updateOrCreate(
+            ['documento' => $request->documento],
+            $datosAGuardar
+        );
+
+        session(['cedula_usuario' => $request->documento]);
+
+        return redirect()->route('metro.create')->with('success', '¡Solicitud guardada y actualizada correctamente!');
     }
 }

@@ -25,13 +25,46 @@
 
         <p class="fst-italic small">Nota: Sapiencia solo hace el reporte de la presente solicitud a la SECRETARIA DE EDUCACIÓN DEL DISTRITO ESPECIAL DE CIENCIA, TECNOLOGÍA E INNOVACIÓN DE MEDELLÍN y posteriormente son ellos quienes hacen la validación final de requisitos y reportan oficialmente al METRO. CIRCULAR NÚMERO 202460000077 DE 02/04/2024</p>
 
-        <h5>Formulario de solicitud</h5>
-        <p>Es indispensable para la solicitud del beneficio diligenciar completamente este formulario.</p>
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+    <div>
+        <h4 class="mb-0 text-success fw-bold">PERFIL ESTUDIANTIL (TIQUETE METRO)</h4>
+        <small class="text-muted">Formulario oficial de postulación y actualización</small>
     </div>
+    @if (!empty($cedula))
+        <div class="text-end">
+            <span class="badge bg-light text-dark border px-3 py-2">
+                <i class="bi bi-person-circle"></i> Documento: <strong>{{ $cedula }}</strong>
+                @if ($registroExistente)
+                    <span class="badge bg-primary ms-1">Modo Edición</span>
+                @else
+                    <span class="badge bg-secondary ms-1">Nuevo Registro</span>
+                @endif
+            </span>
+            <div class="mt-1">
+                <a href="{{ route('metro.logout') }}" class="small text-danger text-decoration-none">
+                    Cambiar documento / Salir
+                </a>
+            </div>
+        </div>
+    @else
+        <div class="text-end">
+            <a href="{{ route('metro.login') }}" class="btn btn-outline-success btn-sm">
+                Iniciar con documento
+            </a>
+        </div>
+    @endif
 </div>
 
 @if (session('success'))
     <div class="alert alert-success">{{ session('success') }}</div>
+@endif
+
+@if ($registroExistente)
+    <div class="alert alert-info d-flex align-items-center" role="alert">
+        <div>
+            <strong>¡Bienvenido de nuevo!</strong> Hemos cargado los datos que tenías guardados para el documento <strong>{{ $cedula }}</strong>. Puedes revisarlos, modificarlos y presionar <em>"Enviar Solicitud"</em> para guardar los cambios.
+        </div>
+    </div>
 @endif
 
 @if ($errors->any())
@@ -53,7 +86,7 @@
         <select name="motivo" class="form-select" required>
             <option value="">Seleccionar</option>
             @foreach ($motivos as $motivo)
-                <option value="{{ $motivo->id }}" {{ old('motivo') == $motivo->id ? 'selected' : '' }}>{{ $motivo->descripcion }}</option>
+                <option value="{{ $motivo->id }}" {{ old('motivo', $registroExistente->motivo ?? '') == $motivo->id ? 'selected' : '' }}>{{ $motivo->descripcion }}</option>
             @endforeach
         </select>
     </div>
@@ -64,38 +97,38 @@
             <select name="tipo_documento" class="form-select" required>
                 <option value="">Seleccionar</option>
                 @foreach ($tiposDocumento as $td)
-                    <option value="{{ $td->id }}" {{ old('tipo_documento') == $td->id ? 'selected' : '' }}>{{ $td->descripcion }}</option>
+                    <option value="{{ $td->id }}" {{ old('tipo_documento', $registroExistente->tipo_documento ?? '') == $td->id ? 'selected' : '' }}>{{ $td->descripcion }}</option>
                 @endforeach
             </select>
         </div>
         <div class="col-md-8">
             <label class="form-label">Número de documento de identidad</label>
-            <input type="text" name="documento" class="form-control" value="{{ old('documento') }}" required>
+            <input type="text" name="documento" class="form-control" value="{{ old('documento', $cedula ?? ($registroExistente->documento ?? '')) }}" required>
         </div>
     </div>
 
     <div class="row mb-3">
         <div class="col-md-3">
             <label class="form-label">Primer nombre</label>
-            <input type="text" name="primer_nombre" class="form-control" value="{{ old('primer_nombre') }}" required>
+            <input type="text" name="primer_nombre" class="form-control" value="{{ old('primer_nombre', $registroExistente->primer_nombre ?? '') }}" required>
         </div>
         <div class="col-md-3">
             <label class="form-label">Segundo nombre</label>
-            <input type="text" name="segundo_nombre" class="form-control" value="{{ old('segundo_nombre') }}">
+            <input type="text" name="segundo_nombre" class="form-control" value="{{ old('segundo_nombre', $registroExistente->segundo_nombre ?? '') }}">
         </div>
         <div class="col-md-3">
             <label class="form-label">Primer apellido</label>
-            <input type="text" name="primer_apellido" class="form-control" value="{{ old('primer_apellido') }}" required>
+            <input type="text" name="primer_apellido" class="form-control" value="{{ old('primer_apellido', $registroExistente->primer_apellido ?? '') }}" required>
         </div>
         <div class="col-md-3">
             <label class="form-label">Segundo apellido</label>
-            <input type="text" name="segundo_apellido" class="form-control" value="{{ old('segundo_apellido') }}">
+            <input type="text" name="segundo_apellido" class="form-control" value="{{ old('segundo_apellido', $registroExistente->segundo_apellido ?? '') }}">
         </div>
     </div>
 
     <div class="mb-3">
         <label class="form-label">NOMBRES Y APELLIDOS (como esta marcada la CÍVICA)</label>
-        <input type="text" name="nombre_civica" class="form-control" value="{{ old('nombre_civica') }}">
+        <input type="text" name="nombre_civica" class="form-control" value="{{ old('nombre_civica', $registroExistente->nombre_civica ?? '') }}">
     </div>
 
     <div class="row mb-3">
@@ -104,35 +137,35 @@
             <select name="genero" id="genero" class="form-select" required>
                 <option value="">Seleccionar</option>
                 @foreach ($generos as $g)
-                    <option value="{{ $g->id }}" data-desc="{{ strtoupper($g->descripcion) }}" {{ old('genero') == $g->id ? 'selected' : '' }}>{{ $g->descripcion }}</option>
+                    <option value="{{ $g->id }}" data-desc="{{ strtoupper($g->descripcion) }}" {{ old('genero', $registroExistente->genero ?? '') == $g->id ? 'selected' : '' }}>{{ $g->descripcion }}</option>
                 @endforeach
             </select>
         </div>
         <div class="col-md-6" id="cual_genero_wrapper" style="display:none;">
             <label class="form-label">¿Cuál?</label>
-            <input type="text" name="cual_genero" id="cual_genero" class="form-control" value="{{ old('cual_genero') }}">
+            <input type="text" name="cual_genero" id="cual_genero" class="form-control" value="{{ old('cual_genero', $registroExistente->cual_genero ?? '') }}">
         </div>
     </div>
 
     <h6 class="mt-4">Dirección de residencia</h6>
-    <input type="hidden" name="direccion" id="direccion" value="{{ old('direccion') }}">
+    <input type="hidden" name="direccion" id="direccion" value="{{ old('direccion', $registroExistente->direccion ?? '') }}">
     <div class="row mb-3">
         <div class="col-md-4">
             <label class="form-label">Vía principal</label>
             <select name="dirCampo1" id="dirCampo1" class="form-select" onchange="llenarotrocampo()">
                 <option value="">Seleccione</option>
                 @foreach ($tiposVia as $tv)
-                    <option value="{{ $tv->id }}" {{ old('dirCampo1') == $tv->id ? 'selected' : '' }}>{{ $tv->descripcion }}</option>
+                    <option value="{{ $tv->id }}" {{ old('dirCampo1', $registroExistente->dirCampo1 ?? '') == $tv->id ? 'selected' : '' }}>{{ $tv->descripcion }}</option>
                 @endforeach
             </select>
         </div>
         <div class="col-md-4">
             <label class="form-label">Número</label>
-            <input type="text" name="dirCampo2" id="dirCampo2" class="form-control" value="{{ old('dirCampo2') }}" onkeyup="llenarotrocampo()" onchange="llenarotrocampo()">
+            <input type="text" name="dirCampo2" id="dirCampo2" class="form-control" value="{{ old('dirCampo2', $registroExistente->dirCampo2 ?? '') }}" onkeyup="llenarotrocampo()" onchange="llenarotrocampo()">
         </div>
         <div class="col-md-4">
             <label class="form-label">Prefijo</label>
-            <input type="text" name="dirCampo3" id="dirCampo3" class="form-control" value="{{ old('dirCampo3') }}" onkeyup="llenarotrocampo()" onchange="llenarotrocampo()">
+            <input type="text" name="dirCampo3" id="dirCampo3" class="form-control" value="{{ old('dirCampo3', $registroExistente->dirCampo3 ?? '') }}" onkeyup="llenarotrocampo()" onchange="llenarotrocampo()">
         </div>
     </div>
     <div class="row mb-3">
@@ -141,17 +174,17 @@
             <select name="dirCampo4" id="dirCampo4" class="form-select" onchange="llenarotrocampo()">
                 <option value="">Seleccione</option>
                 @foreach ($orientaciones as $o)
-                    <option value="{{ $o->id }}" {{ old('dirCampo4') == $o->id ? 'selected' : '' }}>{{ $o->descripcion }}</option>
+                    <option value="{{ $o->id }}" {{ old('dirCampo4', $registroExistente->dirCampo4 ?? '') == $o->id ? 'selected' : '' }}>{{ $o->descripcion }}</option>
                 @endforeach
             </select>
         </div>
         <div class="col-md-4">
             <label class="form-label">Vía secundaria</label>
-            <input type="text" name="dirCampo5" id="dirCampo5" class="form-control" value="{{ old('dirCampo5') }}" onkeyup="llenarotrocampo()" onchange="llenarotrocampo()">
+            <input type="text" name="dirCampo5" id="dirCampo5" class="form-control" value="{{ old('dirCampo5', $registroExistente->dirCampo5 ?? '') }}" onkeyup="llenarotrocampo()" onchange="llenarotrocampo()">
         </div>
         <div class="col-md-4">
             <label class="form-label">Prefijo</label>
-            <input type="text" name="dirCampo6" id="dirCampo6" class="form-control" value="{{ old('dirCampo6') }}" onkeyup="llenarotrocampo()" onchange="llenarotrocampo()">
+            <input type="text" name="dirCampo6" id="dirCampo6" class="form-control" value="{{ old('dirCampo6', $registroExistente->dirCampo6 ?? '') }}" onkeyup="llenarotrocampo()" onchange="llenarotrocampo()">
         </div>
     </div>
     <div class="row mb-3">
@@ -160,17 +193,17 @@
             <select name="dirCampo7" id="dirCampo7" class="form-select" onchange="llenarotrocampo()">
                 <option value="">Seleccione</option>
                 @foreach ($orientaciones as $o)
-                    <option value="{{ $o->id }}" {{ old('dirCampo7') == $o->id ? 'selected' : '' }}>{{ $o->descripcion }}</option>
+                    <option value="{{ $o->id }}" {{ old('dirCampo7', $registroExistente->dirCampo7 ?? '') == $o->id ? 'selected' : '' }}>{{ $o->descripcion }}</option>
                 @endforeach
             </select>
         </div>
         <div class="col-md-4">
             <label class="form-label">Placa</label>
-            <input type="text" name="dirCampo8" id="dirCampo8" class="form-control" value="{{ old('dirCampo8') }}" onkeyup="llenarotrocampo()" onchange="llenarotrocampo()">
+            <input type="text" name="dirCampo8" id="dirCampo8" class="form-control" value="{{ old('dirCampo8', $registroExistente->dirCampo8 ?? '') }}" onkeyup="llenarotrocampo()" onchange="llenarotrocampo()">
         </div>
         <div class="col-md-4">
             <label class="form-label">Complemento</label>
-            <input type="text" name="dirCampo9" id="dirCampo9" class="form-control" value="{{ old('dirCampo9') }}" onkeyup="llenarotrocampo()" onchange="llenarotrocampo()">
+            <input type="text" name="dirCampo9" id="dirCampo9" class="form-control" value="{{ old('dirCampo9', $registroExistente->dirCampo9 ?? '') }}" onkeyup="llenarotrocampo()" onchange="llenarotrocampo()">
         </div>
     </div>
 
@@ -184,7 +217,7 @@
         <select name="municipio" id="municipio" class="form-select" required>
             <option value="">Seleccionar</option>
             @foreach ($municipios as $m)
-                <option value="{{ $m->id }}" data-desc="{{ strtoupper($m->descripcion) }}" {{ old('municipio') == $m->id ? 'selected' : '' }}>{{ $m->descripcion }}</option>
+                <option value="{{ $m->id }}" data-desc="{{ strtoupper($m->descripcion) }}" {{ old('municipio', $registroExistente->municipio ?? '') == $m->id ? 'selected' : '' }}>{{ $m->descripcion }}</option>
             @endforeach
         </select>
     </div>
@@ -196,7 +229,7 @@
             <select name="comuna" id="comuna" class="form-select">
                 <option value="">Seleccionar</option>
                 @foreach ($comunas as $c)
-                    <option value="{{ $c->id }}" {{ old('comuna') == $c->id ? 'selected' : '' }}>{{ $c->descripcion }}</option>
+                    <option value="{{ $c->id }}" {{ old('comuna', $registroExistente->comuna ?? '') == $c->id ? 'selected' : '' }}>{{ $c->descripcion }}</option>
                 @endforeach
             </select>
         </div>
@@ -211,7 +244,7 @@
     <!-- Bloque condicional: Si NO es Medellín -> Texto libre OtroBarrio -->
     <div class="mb-3" id="barrioTextoWrapper" style="display:none;">
         <label class="form-label">Barrio</label>
-        <input type="text" name="OtroBarrio" id="OtroBarrio" class="form-control" value="{{ old('OtroBarrio') }}">
+        <input type="text" name="OtroBarrio" id="OtroBarrio" class="form-control" value="{{ old('OtroBarrio', $registroExistente->OtroBarrio ?? '') }}">
     </div>
 
     <div class="row mb-3">
@@ -219,14 +252,14 @@
             <label class="form-label">Fecha de nacimiento</label>
             <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" 
                 class="form-control" 
-                value="{{ old('fecha_nacimiento') }}" 
+                value="{{ old('fecha_nacimiento', $registroExistente->fecha_nacimiento ?? '') }}" 
                 min="{{ now()->subYears(100)->format('Y-m-d') }}" 
                 max="{{ now()->subYears(15)->format('Y-m-d') }}" 
                 required>
         </div>
         <div class="col-md-6">
             <label class="form-label">Edad</label>
-            <input type="text" name="edad" id="edad" class="form-control" value="{{ old('edad') }}" readonly>
+            <input type="text" name="edad" id="edad" class="form-control" value="{{ old('edad', $registroExistente->edad ?? '') }}" readonly>
             <div id="edadError" class="text-danger small mt-1"></div>
         </div>
     </div>
@@ -237,7 +270,7 @@
             <select name="estrato" class="form-select" required>
                 <option value="">Seleccionar</option>
                 @foreach ($estratos as $e)
-                    <option value="{{ $e->id }}" {{ old('estrato') == $e->id ? 'selected' : '' }}>{{ $e->descripcion }}</option>
+                    <option value="{{ $e->id }}" {{ old('estrato', $registroExistente->estrato ?? '') == $e->id ? 'selected' : '' }}>{{ $e->descripcion }}</option>
                 @endforeach
             </select>
         </div>
@@ -246,24 +279,24 @@
             <select name="puntajeSisben" class="form-select">
                 <option value="">Seleccionar</option>
                 @foreach ($sisbenes as $s)
-                    <option value="{{ $s->id }}" {{ old('puntajeSisben') == $s->id ? 'selected' : '' }}>{{ $s->descripcion }}</option>
+                    <option value="{{ $s->id }}" {{ old('puntajeSisben', $registroExistente->puntajeSisben ?? '') == $s->id ? 'selected' : '' }}>{{ $s->descripcion }}</option>
                 @endforeach
             </select>
         </div>
         <div class="col-md-4">
             <label class="form-label">Teléfono Celular</label>
-            <input type="text" name="celular" class="form-control" value="{{ old('celular') }}" required>
+            <input type="text" name="celular" class="form-control" value="{{ old('celular', $registroExistente->celular ?? '') }}" required>
         </div>
     </div>
 
     <div class="row mb-3">
         <div class="col-md-6">
             <label class="form-label">Teléfono fijo</label>
-            <input type="text" name="telefonoFijo" class="form-control" value="{{ old('telefonoFijo') }}">
+            <input type="text" name="telefonoFijo" class="form-control" value="{{ old('telefonoFijo', $registroExistente->telefonoFijo ?? '') }}">
         </div>
         <div class="col-md-6">
             <label class="form-label">Correo electrónico</label>
-            <input type="email" name="correo" class="form-control" value="{{ old('correo') }}" required>
+            <input type="email" name="correo" class="form-control" value="{{ old('correo', $registroExistente->correo ?? '') }}" required>
         </div>
     </div>
 
@@ -273,7 +306,7 @@
             <select name="nivel_academico" id="nivel_academico" class="form-select" required>
                 <option value="">Seleccionar</option>
                 @foreach ($nivelesAcademicos as $na)
-                    <option value="{{ $na->id }}" data-desc="{{ strtoupper($na->descripcion) }}" {{ old('nivel_academico') == $na->id ? 'selected' : '' }}>{{ $na->descripcion }}</option>
+                    <option value="{{ $na->id }}" data-desc="{{ strtoupper($na->descripcion) }}" {{ old('nivel_academico', $registroExistente->nivel_academico ?? '') == $na->id ? 'selected' : '' }}>{{ $na->descripcion }}</option>
                 @endforeach
             </select>
         </div>
@@ -282,13 +315,13 @@
             <select name="grado" id="grado" class="form-select">
                 <option value="">Seleccionar</option>
                 @foreach ($grados as $gr)
-                    <option value="{{ $gr->id }}" data-nivel="{{ $gr->nivel_academico_id }}" {{ old('grado') == $gr->id ? 'selected' : '' }}>{{ $gr->descripcion }}</option>
+                    <option value="{{ $gr->id }}" data-nivel="{{ $gr->nivel_academico_id }}" {{ old('grado', $registroExistente->grado ?? '') == $gr->id ? 'selected' : '' }}>{{ $gr->descripcion }}</option>
                 @endforeach
             </select>
         </div>
         <div class="col-md-4" id="semestre_wrapper" style="display:none;">
             <label class="form-label">Semestre</label>
-            <input type="number" name="semestre" id="semestre" min="1" max="15" class="form-control" value="{{ old('semestre') }}">
+            <input type="number" name="semestre" id="semestre" min="1" max="15" class="form-control" value="{{ old('semestre', $registroExistente->semestre ?? '') }}">
         </div>
     </div>
 
@@ -297,7 +330,7 @@
         <select name="fondo" class="form-select" required>
             <option value="">Seleccionar</option>
             @foreach ($fondos as $f)
-                <option value="{{ $f->id }}" {{ old('fondo') == $f->id ? 'selected' : '' }}>{{ $f->descripcion }}</option>
+                <option value="{{ $f->id }}" {{ old('fondo', $registroExistente->fondo ?? '') == $f->id ? 'selected' : '' }}>{{ $f->descripcion }}</option>
             @endforeach
         </select>
     </div>
@@ -308,7 +341,7 @@
             <select name="discapacidad" id="discapacidad" class="form-select" required>
                 <option value="">Seleccionar</option>
                 @foreach ($sinos as $s)
-                    <option value="{{ $s->id }}" data-desc="{{ strtoupper($s->descripcion) }}" {{ old('discapacidad') == $s->id ? 'selected' : '' }}>{{ $s->descripcion }}</option>
+                    <option value="{{ $s->id }}" data-desc="{{ strtoupper($s->descripcion) }}" {{ old('discapacidad', $registroExistente->discapacidad ?? '') == $s->id ? 'selected' : '' }}>{{ $s->descripcion }}</option>
                 @endforeach
             </select>
         </div>
@@ -317,7 +350,7 @@
             <select name="tipo_discapacidad" id="tipo_discapacidad" class="form-select">
                 <option value="">Seleccionar</option>
                 @foreach ($tiposDiscapacidad as $td)
-                    <option value="{{ $td->id }}" {{ old('tipo_discapacidad') == $td->id ? 'selected' : '' }}>{{ $td->descripcion }}</option>
+                    <option value="{{ $td->id }}" {{ old('tipo_discapacidad', $registroExistente->tipo_discapacidad ?? '') == $td->id ? 'selected' : '' }}>{{ $td->descripcion }}</option>
                 @endforeach
             </select>
         </div>
@@ -325,22 +358,50 @@
 
     <div class="mb-3">
         <label class="form-label">Número de cívica personalizada</label>
-        <input type="text" name="civica" class="form-control" value="{{ old('civica') }}">
+        <input type="text" name="civica" class="form-control" value="{{ old('civica', $registroExistente->civica ?? '') }}">
     </div>
 
     <h6 class="mt-4">Documentos adjuntos</h6>
     <div class="d-flex flex-wrap gap-2 mb-2">
-        <button type="button" class="btn btn-outline-success" id="btnModalIdentidad" data-bs-toggle="modal" data-bs-target="#modalIdentidad">Adjuntar copia de documento de identidad</button>
-        <button type="button" class="btn btn-outline-success" id="btnModalServicios" data-bs-toggle="modal" data-bs-target="#modalServicios">Copia de servicios públicos domiciliarios</button>
-        <button type="button" class="btn btn-outline-success" id="btnModalCivica" data-bs-toggle="modal" data-bs-target="#modalCivica">Copia de Tarjeta Cívica</button>
-        <button type="button" class="btn btn-outline-success" id="btnCertificado" data-bs-toggle="modal" data-bs-target="#modalCertificado" style="display:none;">Certificado de discapacidad o historia clínica</button>
+        <button type="button" class="btn {{ (!empty($registroExistente?->archivo_documento_identidad)) ? 'btn-success' : 'btn-outline-success' }}" id="btnModalIdentidad" data-bs-toggle="modal" data-bs-target="#modalIdentidad">
+            {{ (!empty($registroExistente?->archivo_documento_identidad)) ? '✓ Identidad cargado' : 'Adjuntar copia de documento de identidad' }}
+        </button>
+        <button type="button" class="btn {{ (!empty($registroExistente?->archivo_servicios_publicos)) ? 'btn-success' : 'btn-outline-success' }}" id="btnModalServicios" data-bs-toggle="modal" data-bs-target="#modalServicios">
+            {{ (!empty($registroExistente?->archivo_servicios_publicos)) ? '✓ Servicios cargado' : 'Copia de servicios públicos domiciliarios' }}
+        </button>
+        <button type="button" class="btn {{ (!empty($registroExistente?->archivo_tarjeta_civica)) ? 'btn-success' : 'btn-outline-success' }}" id="btnModalCivica" data-bs-toggle="modal" data-bs-target="#modalCivica">
+            {{ (!empty($registroExistente?->archivo_tarjeta_civica)) ? '✓ Cívica cargada' : 'Copia de Tarjeta Cívica' }}
+        </button>
+        <button type="button" class="btn {{ (!empty($registroExistente?->archivo_certificado_discapacidad)) ? 'btn-success' : 'btn-outline-success' }}" id="btnCertificado" data-bs-toggle="modal" data-bs-target="#modalCertificado" style="display:none;">
+            {{ (!empty($registroExistente?->archivo_certificado_discapacidad)) ? '✓ Discapacidad cargada' : 'Certificado de discapacidad o historia clínica' }}
+        </button>
     </div>
 
     <div id="archivos_seleccionados" class="mb-4 small">
-        <span class="badge bg-light text-dark border me-2" id="badge_doc" style="display:none;">Documento: <span class="file-name"></span></span>
-        <span class="badge bg-light text-dark border me-2" id="badge_serv" style="display:none;">Servicios: <span class="file-name"></span></span>
-        <span class="badge bg-light text-dark border me-2" id="badge_civ" style="display:none;">Cívica: <span class="file-name"></span></span>
-        <span class="badge bg-light text-dark border me-2" id="badge_disc" style="display:none;">Discapacidad: <span class="file-name"></span></span>
+        <span class="badge bg-light text-dark border me-2" id="badge_doc" style="{{ !empty($registroExistente?->archivo_documento_identidad) ? 'display:inline-block;' : 'display:none;' }}">
+            Documento: <span class="file-name">{{ !empty($registroExistente?->archivo_documento_identidad) ? basename($registroExistente->archivo_documento_identidad) : '' }}</span>
+            @if (!empty($registroExistente?->archivo_documento_identidad))
+                <a href="{{ asset('storage/' . $registroExistente->archivo_documento_identidad) }}" target="_blank" class="ms-1 text-primary text-decoration-none fw-bold" id="link_doc">(Ver archivo)</a>
+            @endif
+        </span>
+        <span class="badge bg-light text-dark border me-2" id="badge_serv" style="{{ !empty($registroExistente?->archivo_servicios_publicos) ? 'display:inline-block;' : 'display:none;' }}">
+            Servicios: <span class="file-name">{{ !empty($registroExistente?->archivo_servicios_publicos) ? basename($registroExistente->archivo_servicios_publicos) : '' }}</span>
+            @if (!empty($registroExistente?->archivo_servicios_publicos))
+                <a href="{{ asset('storage/' . $registroExistente->archivo_servicios_publicos) }}" target="_blank" class="ms-1 text-primary text-decoration-none fw-bold" id="link_serv">(Ver archivo)</a>
+            @endif
+        </span>
+        <span class="badge bg-light text-dark border me-2" id="badge_civ" style="{{ !empty($registroExistente?->archivo_tarjeta_civica) ? 'display:inline-block;' : 'display:none;' }}">
+            Cívica: <span class="file-name">{{ !empty($registroExistente?->archivo_tarjeta_civica) ? basename($registroExistente->archivo_tarjeta_civica) : '' }}</span>
+            @if (!empty($registroExistente?->archivo_tarjeta_civica))
+                <a href="{{ asset('storage/' . $registroExistente->archivo_tarjeta_civica) }}" target="_blank" class="ms-1 text-primary text-decoration-none fw-bold" id="link_civ">(Ver archivo)</a>
+            @endif
+        </span>
+        <span class="badge bg-light text-dark border me-2" id="badge_disc" style="{{ !empty($registroExistente?->archivo_certificado_discapacidad) ? 'display:inline-block;' : 'display:none;' }}">
+            Discapacidad: <span class="file-name">{{ !empty($registroExistente?->archivo_certificado_discapacidad) ? basename($registroExistente->archivo_certificado_discapacidad) : '' }}</span>
+            @if (!empty($registroExistente?->archivo_certificado_discapacidad))
+                <a href="{{ asset('storage/' . $registroExistente->archivo_certificado_discapacidad) }}" target="_blank" class="ms-1 text-primary text-decoration-none fw-bold" id="link_disc">(Ver archivo)</a>
+            @endif
+        </span>
     </div>
 
     <!-- Inputs file reales ocultos que viajan en el POST del formulario -->
@@ -375,11 +436,13 @@
     <p class="small fw-bold">PARÁGRAFO: con la suscripción de este formulario se entiende aceptada la finalidad del tratamiento de datos y que conoce los mecanismos para su protección.</p>
 
     <div class="form-check my-4">
-        <input class="form-check-input" type="checkbox" name="acepta" id="acepta" value="1" required {{ old('acepta') ? 'checked' : '' }}>
+        <input class="form-check-input" type="checkbox" name="acepta" id="acepta" value="1" required {{ old('acepta', $registroExistente->acepta ?? 0) ? 'checked' : '' }}>
         <label class="form-check-label" for="acepta">Acepto</label>
     </div>
 
-    <button type="submit" class="btn btn-primary btn-lg">Enviar Solicitud</button>
+    <button type="submit" class="btn btn-primary btn-lg">
+        {{ (isset($registroExistente) && $registroExistente) ? 'Actualizar Solicitud' : 'Enviar Solicitud' }}
+    </button>
 </form>
 
 <!-- Modal: Documento de identidad -->
@@ -609,7 +672,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const barrioTextoWrapper = document.getElementById('barrioTextoWrapper');
     const otroBarrioInput = document.getElementById('OtroBarrio');
 
-    const oldBarrio = "{{ old('barrio') }}";
+    const oldBarrio = "{{ old('barrio', $registroExistente->barrio ?? '') }}";
 
     function cargarBarrios(comunaId, barrioSeleccionado = null) {
         barrioSelect.innerHTML = '<option value="">Cargando...</option>';
@@ -688,6 +751,51 @@ document.addEventListener('DOMContentLoaded', function () {
     // 6. Inicializar cálculo de dirección si ya vienen valores (e.g. validación fallida con old())
     if (document.getElementById('dirCampo1')) {
         llenarotrocampo();
+    }
+
+    // 7. Autoguardado y recuperación de borrador en localStorage (asociado a la cédula activa)
+    const cedulaActiva = "{{ $cedula ?? '' }}";
+    const claveBorrador = cedulaActiva ? ('borrador_tiquete_metro_' + cedulaActiva) : 'borrador_tiquete_metro';
+
+    // Limpiar cualquier borrador genérico antiguo
+    localStorage.removeItem('borrador_tiquete_metro');
+
+    @if (session('success'))
+        localStorage.removeItem(claveBorrador);
+    @else
+        const borradorGuardado = localStorage.getItem(claveBorrador);
+        if (borradorGuardado) {
+            try {
+                const datosBorrador = JSON.parse(borradorGuardado);
+                if (datosBorrador && borradorTieneContenido(datosBorrador)) {
+                    if (confirm('Se han encontrado cambios sin guardar en este navegador. ¿Deseas recuperar los datos del borrador?')) {
+                        restaurarBorrador(datosBorrador);
+                    } else {
+                        localStorage.removeItem(claveBorrador);
+                    }
+                }
+            } catch (e) {
+                console.error('Error al leer borrador:', e);
+            }
+        }
+    @endif
+
+    const formMetroEl = document.getElementById('formularioMetro') || document.querySelector('form');
+    if (formMetroEl) {
+        formMetroEl.addEventListener('input', guardarBorrador);
+        formMetroEl.addEventListener('change', guardarBorrador);
+
+        // 8. Prevención de doble clic en el envío (Double Submit)
+        formMetroEl.addEventListener('submit', function (e) {
+            if (!this.checkValidity()) {
+                return;
+            }
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Guardando solicitud, por favor espera...';
+            }
+        });
     }
 });
 
@@ -820,6 +928,106 @@ function guardarArchivoModal(modalInputId, realInputId, modalId, btnId, badgeId,
     const modalElement = document.getElementById(modalId);
     const modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
     modalInstance.hide();
+}
+
+// 7. Funciones de autoguardado en localStorage
+function borradorTieneContenido(datos) {
+    if (!datos || typeof datos !== 'object') return false;
+    const camposRelevantes = ['primer_nombre', 'primer_apellido', 'correo', 'celular', 'dirCampo2', 'OtroBarrio'];
+    return camposRelevantes.some(campo => datos[campo] && String(datos[campo]).trim().length > 0);
+}
+
+function guardarBorrador() {
+    const form = document.getElementById('formularioMetro') || document.querySelector('form');
+    if (!form) return;
+
+    const cedula = "{{ $cedula ?? '' }}";
+    const clave = cedula ? ('borrador_tiquete_metro_' + cedula) : 'borrador_tiquete_metro';
+
+    const formData = new FormData(form);
+    const objeto = {};
+    let tieneInfo = false;
+
+    formData.forEach((value, key) => {
+        if (value instanceof File) return;
+        objeto[key] = value;
+        if (typeof value === 'string' && value.trim().length > 0 && key !== '_token' && key !== 'periodo' && key !== 'documento') {
+            tieneInfo = true;
+        }
+    });
+
+    // Checkboxes
+    form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        if (cb.name) {
+            objeto[cb.name] = cb.checked ? cb.value : '';
+        }
+    });
+
+    // Solo guardar si realmente hay información diligenciada
+    if (tieneInfo) {
+        localStorage.setItem(clave, JSON.stringify(objeto));
+    }
+}
+
+function restaurarBorrador(datos) {
+    const form = document.getElementById('formularioMetro') || document.querySelector('form');
+    if (!form) return;
+
+    for (const [key, val] of Object.entries(datos)) {
+        if (key === '_token' || key === 'periodo') continue;
+        const campo = form.elements[key];
+        if (!campo) continue;
+
+        if (campo.type === 'checkbox') {
+            campo.checked = (val == campo.value || val === true || val == '1');
+        } else if (campo.type === 'file') {
+            // Los archivos no se pueden inyectar por seguridad de los navegadores
+        } else {
+            // Solo sobreescribir si el borrador contiene un valor no vacío
+            if (val !== '' && val !== null && val !== undefined) {
+                campo.value = val;
+            }
+        }
+    }
+
+    // Disparar las funciones de interfaz existentes para actualizar la vista
+    const fechaNac = document.getElementById('fecha_nacimiento');
+    if (fechaNac && fechaNac.value) {
+        fechaNac.dispatchEvent(new Event('change'));
+    }
+
+    const generoSelect = document.getElementById('genero');
+    if (generoSelect) {
+        generoSelect.dispatchEvent(new Event('change'));
+    }
+
+    const nivelSelect = document.getElementById('nivel_academico');
+    if (nivelSelect) {
+        nivelSelect.dispatchEvent(new Event('change'));
+        if (datos.grado) {
+            const gradoSelect = document.getElementById('grado');
+            if (gradoSelect) gradoSelect.value = datos.grado;
+        }
+    }
+
+    const discSelect = document.getElementById('discapacidad');
+    if (discSelect) {
+        discSelect.dispatchEvent(new Event('change'));
+    }
+
+    const muniSelect = document.getElementById('municipio');
+    if (muniSelect) {
+        muniSelect.dispatchEvent(new Event('change'));
+        if (datos.comuna && datos.barrio) {
+            if (typeof cargarBarrios === 'function') {
+                cargarBarrios(datos.comuna, datos.barrio);
+            }
+        }
+    }
+
+    if (typeof llenarotrocampo === 'function') {
+        llenarotrocampo();
+    }
 }
 </script>
 @endsection
