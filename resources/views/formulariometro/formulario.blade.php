@@ -44,7 +44,7 @@
     </div>
 @endif
 
-<form action="{{ route('metro.store') }}" method="POST" enctype="multipart/form-data" id="formularioMetro">
+<form action="{{ route('metro.store') }}" method="POST" enctype="multipart/form-data" id="formularioMetro" class="was-validated">
     @csrf
     <input type="hidden" name="periodo" value="17">
 
@@ -115,10 +115,11 @@
     </div>
 
     <h6 class="mt-4">Dirección de residencia</h6>
+    <input type="hidden" name="direccion" id="direccion" value="{{ old('direccion') }}">
     <div class="row mb-3">
         <div class="col-md-4">
             <label class="form-label">Vía principal</label>
-            <select name="dirCampo1" class="form-select">
+            <select name="dirCampo1" id="dirCampo1" class="form-select" onchange="llenarotrocampo()">
                 <option value="">Seleccione</option>
                 @foreach ($tiposVia as $tv)
                     <option value="{{ $tv->id }}" {{ old('dirCampo1') == $tv->id ? 'selected' : '' }}>{{ $tv->descripcion }}</option>
@@ -127,17 +128,17 @@
         </div>
         <div class="col-md-4">
             <label class="form-label">Número</label>
-            <input type="text" name="dirCampo2" class="form-control" value="{{ old('dirCampo2') }}">
+            <input type="text" name="dirCampo2" id="dirCampo2" class="form-control" value="{{ old('dirCampo2') }}" onkeyup="llenarotrocampo()" onchange="llenarotrocampo()">
         </div>
         <div class="col-md-4">
             <label class="form-label">Prefijo</label>
-            <input type="text" name="dirCampo3" class="form-control" value="{{ old('dirCampo3') }}">
+            <input type="text" name="dirCampo3" id="dirCampo3" class="form-control" value="{{ old('dirCampo3') }}" onkeyup="llenarotrocampo()" onchange="llenarotrocampo()">
         </div>
     </div>
     <div class="row mb-3">
         <div class="col-md-4">
             <label class="form-label">Nombre vía</label>
-            <select name="dirCampo4" class="form-select">
+            <select name="dirCampo4" id="dirCampo4" class="form-select" onchange="llenarotrocampo()">
                 <option value="">Seleccione</option>
                 @foreach ($orientaciones as $o)
                     <option value="{{ $o->id }}" {{ old('dirCampo4') == $o->id ? 'selected' : '' }}>{{ $o->descripcion }}</option>
@@ -146,17 +147,17 @@
         </div>
         <div class="col-md-4">
             <label class="form-label">Vía secundaria</label>
-            <input type="text" name="dirCampo5" class="form-control" value="{{ old('dirCampo5') }}">
+            <input type="text" name="dirCampo5" id="dirCampo5" class="form-control" value="{{ old('dirCampo5') }}" onkeyup="llenarotrocampo()" onchange="llenarotrocampo()">
         </div>
         <div class="col-md-4">
             <label class="form-label">Prefijo</label>
-            <input type="text" name="dirCampo6" class="form-control" value="{{ old('dirCampo6') }}">
+            <input type="text" name="dirCampo6" id="dirCampo6" class="form-control" value="{{ old('dirCampo6') }}" onkeyup="llenarotrocampo()" onchange="llenarotrocampo()">
         </div>
     </div>
     <div class="row mb-3">
         <div class="col-md-4">
             <label class="form-label">Cuadrante</label>
-            <select name="dirCampo7" class="form-select">
+            <select name="dirCampo7" id="dirCampo7" class="form-select" onchange="llenarotrocampo()">
                 <option value="">Seleccione</option>
                 @foreach ($orientaciones as $o)
                     <option value="{{ $o->id }}" {{ old('dirCampo7') == $o->id ? 'selected' : '' }}>{{ $o->descripcion }}</option>
@@ -165,32 +166,68 @@
         </div>
         <div class="col-md-4">
             <label class="form-label">Placa</label>
-            <input type="text" name="dirCampo8" class="form-control" value="{{ old('dirCampo8') }}">
+            <input type="text" name="dirCampo8" id="dirCampo8" class="form-control" value="{{ old('dirCampo8') }}" onkeyup="llenarotrocampo()" onchange="llenarotrocampo()">
         </div>
         <div class="col-md-4">
             <label class="form-label">Complemento</label>
-            <input type="text" name="dirCampo9" class="form-control" value="{{ old('dirCampo9') }}">
+            <input type="text" name="dirCampo9" id="dirCampo9" class="form-control" value="{{ old('dirCampo9') }}" onkeyup="llenarotrocampo()" onchange="llenarotrocampo()">
         </div>
     </div>
 
     <div class="mb-3">
+        <label class="form-label fw-bold">Dirección:</label>
+        <div id="direccionPreview" class="form-control bg-light" style="min-height: 38px;"></div>
+    </div>
+
+    <div class="mb-3">
         <label class="form-label">Municipio de residencia</label>
-        <select name="municipio" class="form-select" required>
+        <select name="municipio" id="municipio" class="form-select" required>
             <option value="">Seleccionar</option>
             @foreach ($municipios as $m)
-                <option value="{{ $m->id }}" {{ old('municipio') == $m->id ? 'selected' : '' }}>{{ $m->descripcion }}</option>
+                <option value="{{ $m->id }}" data-desc="{{ strtoupper($m->descripcion) }}" {{ old('municipio') == $m->id ? 'selected' : '' }}>{{ $m->descripcion }}</option>
             @endforeach
         </select>
+    </div>
+
+    <!-- Bloque condicional: Si es Medellín -> Comuna y Barrio -->
+    <div class="row mb-3" id="medellin_ubicacion_wrapper" style="display:none;">
+        <div class="col-md-6" id="comunaWrapper">
+            <label class="form-label">Comuna</label>
+            <select name="comuna" id="comuna" class="form-select">
+                <option value="">Seleccionar</option>
+                @foreach ($comunas as $c)
+                    <option value="{{ $c->id }}" {{ old('comuna') == $c->id ? 'selected' : '' }}>{{ $c->descripcion }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-6" id="barrioSelectWrapper">
+            <label class="form-label">Barrio</label>
+            <select name="barrio" id="barrio" class="form-select">
+                <option value="">Seleccionar</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Bloque condicional: Si NO es Medellín -> Texto libre OtroBarrio -->
+    <div class="mb-3" id="barrioTextoWrapper" style="display:none;">
+        <label class="form-label">Barrio</label>
+        <input type="text" name="OtroBarrio" id="OtroBarrio" class="form-control" value="{{ old('OtroBarrio') }}">
     </div>
 
     <div class="row mb-3">
         <div class="col-md-6">
             <label class="form-label">Fecha de nacimiento</label>
-            <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="form-control" value="{{ old('fecha_nacimiento') }}" required>
+            <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" 
+                class="form-control" 
+                value="{{ old('fecha_nacimiento') }}" 
+                min="{{ now()->subYears(100)->format('Y-m-d') }}" 
+                max="{{ now()->subYears(15)->format('Y-m-d') }}" 
+                required>
         </div>
         <div class="col-md-6">
             <label class="form-label">Edad</label>
             <input type="text" name="edad" id="edad" class="form-control" value="{{ old('edad') }}" readonly>
+            <div id="edadError" class="text-danger small mt-1"></div>
         </div>
     </div>
 
@@ -270,14 +307,19 @@
             <label class="form-label">¿Presenta discapacidad?</label>
             <select name="discapacidad" id="discapacidad" class="form-select" required>
                 <option value="">Seleccionar</option>
-                @foreach ($discapacidades as $d)
-                    <option value="{{ $d->id }}" data-desc="{{ strtoupper($d->descripcion) }}" {{ old('discapacidad') == $d->id ? 'selected' : '' }}>{{ $d->descripcion }}</option>
+                @foreach ($sinos as $s)
+                    <option value="{{ $s->id }}" data-desc="{{ strtoupper($s->descripcion) }}" {{ old('discapacidad') == $s->id ? 'selected' : '' }}>{{ $s->descripcion }}</option>
                 @endforeach
             </select>
         </div>
         <div class="col-md-6" id="tipo_discapacidad_wrapper" style="display:none;">
             <label class="form-label">Tipo de discapacidad</label>
-            <input type="text" name="tipo_discapacidad" id="tipo_discapacidad" class="form-control" value="{{ old('tipo_discapacidad') }}">
+            <select name="tipo_discapacidad" id="tipo_discapacidad" class="form-select">
+                <option value="">Seleccionar</option>
+                @foreach ($tiposDiscapacidad as $td)
+                    <option value="{{ $td->id }}" {{ old('tipo_discapacidad') == $td->id ? 'selected' : '' }}>{{ $td->descripcion }}</option>
+                @endforeach
+            </select>
         </div>
     </div>
 
@@ -432,10 +474,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // 1. Cálculo automático de edad según fecha de nacimiento
     const fechaNacInput = document.getElementById('fecha_nacimiento');
     const edadInput = document.getElementById('edad');
+    const edadError = document.getElementById('edadError');
 
     function calcularEdad() {
         if (!fechaNacInput.value) {
             edadInput.value = '';
+            if (edadError) edadError.textContent = '';
             return;
         }
         const hoy = new Date();
@@ -445,10 +489,22 @@ document.addEventListener('DOMContentLoaded', function () {
         if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) {
             edad--;
         }
-        edadInput.value = edad >= 0 ? edad : 0;
+
+        if (edad < 15 || edad > 100) {
+            edadInput.value = '';
+            if (edadError) {
+                edadError.textContent = 'La edad debe estar entre 15 y 100 años.';
+            }
+        } else {
+            edadInput.value = edad;
+            if (edadError) {
+                edadError.textContent = '';
+            }
+        }
     }
 
     fechaNacInput.addEventListener('change', calcularEdad);
+    fechaNacInput.addEventListener('input', calcularEdad);
     if (fechaNacInput.value) {
         calcularEdad();
     }
@@ -531,21 +587,194 @@ document.addEventListener('DOMContentLoaded', function () {
     function toggleDiscapacidad() {
         const opt = discSelect.options[discSelect.selectedIndex];
         const desc = opt ? (opt.getAttribute('data-desc') || opt.text).toUpperCase().trim() : '';
-        if (desc === 'SI') {
+        if (discSelect.value === '1' || desc === 'SI') {
             tipoDiscWrapper.style.display = 'block';
             tipoDiscInput.required = true;
             btnCertificado.style.display = 'inline-block';
         } else {
             tipoDiscWrapper.style.display = 'none';
             tipoDiscInput.required = false;
+            tipoDiscInput.value = '';
             btnCertificado.style.display = 'none';
         }
     }
     discSelect.addEventListener('change', toggleDiscapacidad);
     toggleDiscapacidad();
+
+    // 5. Municipio: Mostrar Comuna/Barrio si es Medellín o Barrio libre (OtroBarrio) si es otro
+    const muniSelect = document.getElementById('municipio');
+    const medellinWrapper = document.getElementById('medellin_ubicacion_wrapper');
+    const comunaSelect = document.getElementById('comuna');
+    const barrioSelect = document.getElementById('barrio');
+    const barrioTextoWrapper = document.getElementById('barrioTextoWrapper');
+    const otroBarrioInput = document.getElementById('OtroBarrio');
+
+    const oldBarrio = "{{ old('barrio') }}";
+
+    function cargarBarrios(comunaId, barrioSeleccionado = null) {
+        barrioSelect.innerHTML = '<option value="">Cargando...</option>';
+        if (!comunaId) {
+            barrioSelect.innerHTML = '<option value="">Seleccionar</option>';
+            return;
+        }
+
+        fetch(`/api/barrios-por-comuna/${comunaId}`)
+            .then(res => res.json())
+            .then(barrios => {
+                barrioSelect.innerHTML = '<option value="">Seleccionar</option>';
+                barrios.forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b.id;
+                    opt.textContent = b.descripcion;
+                    if (barrioSeleccionado && String(b.id) === String(barrioSeleccionado)) {
+                        opt.selected = true;
+                    }
+                    barrioSelect.appendChild(opt);
+                });
+            })
+            .catch(() => {
+                barrioSelect.innerHTML = '<option value="">Error al cargar barrios</option>';
+            });
+    }
+
+    function toggleMunicipio() {
+        const opt = muniSelect.options[muniSelect.selectedIndex];
+        const desc = opt ? (opt.getAttribute('data-desc') || opt.text).toUpperCase().trim() : '';
+
+        if (desc.includes('MEDELL')) {
+            // Es Medellín
+            medellinWrapper.style.display = 'flex';
+            barrioTextoWrapper.style.display = 'none';
+
+            comunaSelect.required = true;
+            barrioSelect.required = true;
+            otroBarrioInput.required = false;
+            otroBarrioInput.value = '';
+
+            if (comunaSelect.value) {
+                cargarBarrios(comunaSelect.value, oldBarrio);
+            }
+        } else if (muniSelect.value !== '') {
+            // Otro municipio
+            medellinWrapper.style.display = 'none';
+            barrioTextoWrapper.style.display = 'block';
+
+            comunaSelect.required = false;
+            comunaSelect.value = '';
+            barrioSelect.required = false;
+            barrioSelect.innerHTML = '<option value="">Seleccionar</option>';
+
+            otroBarrioInput.required = true;
+        } else {
+            // Ningún municipio seleccionado
+            medellinWrapper.style.display = 'none';
+            barrioTextoWrapper.style.display = 'none';
+
+            comunaSelect.required = false;
+            barrioSelect.required = false;
+            otroBarrioInput.required = false;
+        }
+    }
+
+    muniSelect.addEventListener('change', toggleMunicipio);
+    comunaSelect.addEventListener('change', function () {
+        cargarBarrios(this.value);
+    });
+
+    if (muniSelect.value) {
+        toggleMunicipio();
+    }
+
+    // 6. Inicializar cálculo de dirección si ya vienen valores (e.g. validación fallida con old())
+    if (document.getElementById('dirCampo1')) {
+        llenarotrocampo();
+    }
 });
 
-// 5. Transferencia de archivos desde los Modales a los inputs reales
+function llenarotrocampo() {
+    var select1 = document.getElementById("dirCampo1");
+    var dir1 = (select1.value !== '' && select1.selectedIndex >= 0) ? select1.options[select1.selectedIndex].text : '';
+    if (dir1.toUpperCase().startsWith('SELECCION')) { dir1 = ''; }
+
+    var select4 = document.getElementById("dirCampo4");
+    var dir4 = (select4.value !== '' && select4.selectedIndex >= 0) ? select4.options[select4.selectedIndex].text : '';
+    if (dir4.toUpperCase().startsWith('SELECCION')) { dir4 = ''; }
+
+    var select7 = document.getElementById("dirCampo7");
+    var dir7 = (select7.value !== '' && select7.selectedIndex >= 0) ? select7.options[select7.selectedIndex].text : '';
+    if (dir7.toUpperCase().startsWith('SELECCION')) { dir7 = ''; }
+
+    var c2 = document.getElementById('dirCampo2').value.trim();
+    var c3 = document.getElementById('dirCampo3').value.trim();
+    var c5 = document.getElementById('dirCampo5').value.trim();
+    var c6 = document.getElementById('dirCampo6').value.trim();
+    var c8 = document.getElementById('dirCampo8').value.trim();
+    var c9 = document.getElementById('dirCampo9').value.trim();
+
+    var numeral = "";
+    if (select1.value !== '' || c2 !== '' || c3 !== '' || select4.value !== '') {
+        numeral = "#";
+    }
+
+    if (select1.value == '19') {
+        document.getElementById('dirCampo2').disabled = true;
+        document.getElementById('dirCampo3').disabled = true;
+        document.getElementById('dirCampo4').disabled = true;
+        document.getElementById('dirCampo5').disabled = true;
+        document.getElementById('dirCampo6').disabled = true;
+        document.getElementById('dirCampo7').disabled = true;
+        document.getElementById('dirCampo8').disabled = true;
+        document.getElementById('dirCampo2').value = '';
+        document.getElementById('dirCampo3').value = '';
+        document.getElementById('dirCampo4').value = '';
+        document.getElementById('dirCampo5').value = '';
+        document.getElementById('dirCampo6').value = '';
+        document.getElementById('dirCampo7').value = '';
+        document.getElementById('dirCampo8').value = '';
+        document.getElementById('dirCampo2').required = false;
+        document.getElementById('dirCampo5').required = false;
+        document.getElementById('dirCampo8').required = false;
+        document.getElementById('dirCampo9').required = true;
+        var valorDir = document.getElementById('dirCampo9').value.trim();
+        document.getElementById('direccion').value = valorDir;
+        var preview = document.getElementById('direccionPreview');
+        if (preview) { preview.textContent = valorDir; }
+    } else {
+        document.getElementById('dirCampo2').disabled = false;
+        document.getElementById('dirCampo3').disabled = false;
+        document.getElementById('dirCampo4').disabled = false;
+        document.getElementById('dirCampo5').disabled = false;
+        document.getElementById('dirCampo6').disabled = false;
+        document.getElementById('dirCampo7').disabled = false;
+        document.getElementById('dirCampo8').disabled = false;
+        document.getElementById('dirCampo2').required = true;
+        document.getElementById('dirCampo5').required = true;
+        document.getElementById('dirCampo8').required = true;
+        document.getElementById('dirCampo9').required = false;
+
+        var parte1 = [dir1, c2, c3, dir4].filter(Boolean).join(' ');
+        var parte2 = [c5, c6, dir7, c8].filter(Boolean).join(' ');
+
+        var valorDir = '';
+        if (parte1 && parte2) {
+            valorDir = parte1 + ' ' + numeral + ' ' + parte2;
+        } else if (parte1) {
+            valorDir = parte1 + (numeral ? ' ' + numeral : '');
+        } else if (parte2) {
+            valorDir = (numeral ? numeral + ' ' : '') + parte2;
+        }
+
+        if (c9) {
+            valorDir = valorDir ? (valorDir + ' || ' + c9) : c9;
+        }
+
+        document.getElementById('direccion').value = valorDir;
+        var preview = document.getElementById('direccionPreview');
+        if (preview) { preview.textContent = valorDir; }
+    }
+}
+
+// 6. Transferencia de archivos desde los Modales a los inputs reales
 function guardarArchivoModal(modalInputId, realInputId, modalId, btnId, badgeId, textoExito) {
     const modalInput = document.getElementById(modalInputId);
     const realInput = document.getElementById(realInputId);

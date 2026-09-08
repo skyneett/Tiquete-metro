@@ -35,6 +35,9 @@ class DatabaseSeeder extends Seeder
             FondoSeeder::class,
             TipoViaSeeder::class,
             OrientacionSeeder::class,
+            SinoSeeder::class,
+            TipoDiscapacidadSeeder::class,
+            ComunaBarrioSeeder::class,
         ]);
     }
 }

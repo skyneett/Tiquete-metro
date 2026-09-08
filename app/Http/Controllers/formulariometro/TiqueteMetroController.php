@@ -1,21 +1,26 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\formulariometro;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\MotivoDiligenciarFormulario;
-use App\Models\TipoDocumento;
-use App\Models\Genero;
-use App\Models\Municipio;
-use App\Models\Estrato;
-use App\Models\Sisben;
-use App\Models\Discapacidad;
-use App\Models\NivelAcademico;
-use App\Models\Grado;
-use App\Models\Fondo;
-use App\Models\TipoVia;
-use App\Models\Orientacion;
-use App\Models\MetroDatosPersonalesActual;
+use App\Models\formulariometro\MotivoDiligenciarFormulario;
+use App\Models\formulariometro\TipoDocumento;
+use App\Models\formulariometro\Genero;
+use App\Models\formulariometro\Municipio;
+use App\Models\formulariometro\Estrato;
+use App\Models\formulariometro\Sisben;
+use App\Models\formulariometro\Discapacidad;
+use App\Models\formulariometro\NivelAcademico;
+use App\Models\formulariometro\Grado;
+use App\Models\formulariometro\Fondo;
+use App\Models\formulariometro\TipoVia;
+use App\Models\formulariometro\Orientacion;
+use App\Models\formulariometro\Sino;
+use App\Models\formulariometro\TipoDiscapacidad;
+use App\Models\formulariometro\Comuna;
+use App\Models\formulariometro\Barrio;
+use App\Models\formulariometro\MetroDatosPersonalesActual;
 
 class TiqueteMetroController extends Controller
 {
@@ -25,29 +30,39 @@ class TiqueteMetroController extends Controller
         $tiposDocumento = TipoDocumento::all();
         $generos = Genero::all();
         $municipios = Municipio::all();
+        $comunas = Comuna::where('estado', '1')->get();
         $estratos = Estrato::all();
         $sisbenes = Sisben::all();
-        $discapacidades = Discapacidad::all();
+        $sinos = Sino::where('estado', '1')->get();
+        $tiposDiscapacidad = TipoDiscapacidad::where('estado', '1')->get();
         $nivelesAcademicos = NivelAcademico::all();
         $grados = Grado::all();
         $fondos = Fondo::all();
         $tiposVia = TipoVia::all();
         $orientaciones = Orientacion::all();
 
-        return view('metro.formulario', compact(
+        return view('formulariometro.formulario', compact(
             'motivos',
             'tiposDocumento',
             'generos',
             'municipios',
+            'comunas',
             'estratos',
             'sisbenes',
-            'discapacidades',
+            'sinos',
+            'tiposDiscapacidad',
             'nivelesAcademicos',
             'grados',
             'fondos',
             'tiposVia',
             'orientaciones'
         ));
+    }
+
+    public function getBarriosPorComuna($comunaId)
+    {
+        $barrios = Barrio::where('comuna_id', $comunaId)->where('estado', '1')->get(['id', 'descripcion']);
+        return response()->json($barrios);
     }
 
     public function store(Request $request)
@@ -64,7 +79,7 @@ class TiqueteMetroController extends Controller
             'segundo_apellido' => 'nullable|string',
             'civica' => 'nullable|string|max:20',
             'nombre_civica' => 'nullable|string|max:100',
-            'fecha_nacimiento' => 'required|date',
+            'fecha_nacimiento' => 'required|date|after_or_equal:' . now()->subYears(100)->format('Y-m-d') . '|before_or_equal:' . now()->subYears(15)->format('Y-m-d'),
             'edad' => 'required|string',
 
             'dirCampo1' => 'nullable|exists:t1_tipo_via,id',
@@ -78,10 +93,13 @@ class TiqueteMetroController extends Controller
             'dirCampo9' => 'nullable|string',
 
             'municipio' => 'required|exists:t1_municipio,id',
+            'comuna' => 'nullable|exists:t1_comuna,id',
+            'barrio' => 'nullable|exists:t1_barrio,id',
+            'OtroBarrio' => 'nullable|string|max:200',
             'estrato' => 'required|exists:t1_estrato,id',
             'puntajeSisben' => 'nullable|exists:t1_sisben,id',
-            'discapacidad' => 'required|exists:t1_discapacidad,id',
-            'tipo_discapacidad' => 'nullable|string|max:45',
+            'discapacidad' => 'required|exists:t1_sino,id',
+            'tipo_discapacidad' => 'nullable|exists:t1_tipo_discapacidad,id',
 
             'correo' => 'required|email',
             'celular' => 'required|string',
@@ -151,6 +169,9 @@ class TiqueteMetroController extends Controller
             'direccion' => $direccion,
 
             'municipio' => $request->municipio,
+            'comuna' => $request->comuna,
+            'barrio' => $request->barrio,
+            'OtroBarrio' => $request->OtroBarrio,
             'estrato' => $request->estrato,
             'puntajeSisben' => $request->puntajeSisben,
             'discapacidad' => $request->discapacidad,
