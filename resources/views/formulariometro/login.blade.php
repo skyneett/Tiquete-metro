@@ -46,7 +46,13 @@
 
                 <div class="alert alert-light border mt-4 mb-0 small text-muted">
                     <i class="bi bi-info-circle"></i>
-                    <strong>Nota:</strong> Ingresa tu número de documento registrado. Al ingresar al portal podrás acceder al formulario de inscripción desde el menú lateral.
+                    <strong>Nota:</strong> Ingresa tu número de documento registrado. Al iniciar sesión serás dirigido directamente a tu formulario de postulación.
+                </div>
+
+                <div class="text-center mt-3">
+                    <a href="{{ route('admin.metro.login') }}" class="text-muted small text-decoration-none">
+                        <i class="bi bi-shield-lock me-1"></i>Acceso administrativo Metro
+                    </a>
                 </div>
             </div>
         </div>

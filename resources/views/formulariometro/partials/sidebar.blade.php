@@ -1,27 +1,13 @@
 <!-- TODO: proteger este layout con middleware de rol admin cuando se implemente autenticación real -->
 <aside class="sidebar d-flex flex-column p-3">
     <!-- Encabezado de Marca -->
-    <div class="d-flex align-items-center mb-3 px-1 pt-1 border-bottom pb-3" style="border-color: rgba(255, 255, 255, 0.08) !important;">
-        <div class="d-flex align-items-center justify-content-center bg-success bg-opacity-25 rounded-3 p-2 me-2">
-            <i class="bi bi-train-front text-success fs-5"></i>
-        </div>
-        <div>
-            <span class="fs-6 fw-bold d-block text-light" style="letter-spacing: -0.01em;">Tiquete Metro</span>
-            <small class="text-secondary" style="font-size: 0.725rem;">Sapiencia Medellín</small>
-        </div>
+    <div class="mb-3 px-2 pt-1 border-bottom pb-3" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+        <span class="fs-5 fw-bold d-block text-light" style="letter-spacing: -0.01em;">Sapiencia</span>
+        <small class="text-secondary" style="font-size: 0.75rem;">Educación Superior Medellín</small>
     </div>
 
     <!-- Menú de Navegación -->
     <div class="flex-grow-1 overflow-auto">
-        <ul class="nav flex-column mb-2">
-            <li class="nav-item">
-                <a href="{{ route('metro.inicio') }}" class="nav-link {{ request()->routeIs('metro.inicio') ? 'active' : '' }}">
-                    <i class="bi bi-house-door"></i>
-                    <span>Inicio</span>
-                </a>
-            </li>
-        </ul>
-
         <!-- SECCIÓN: FORMULARIOS -->
         <div class="sidebar-heading">
             <i class="bi bi-folder2 me-1"></i> Formularios
@@ -99,11 +85,11 @@
                     <i class="bi bi-person me-1 text-secondary"></i>{{ session('cedula_usuario') }}
                 </div>
             </div>
-            <a href="{{ route('metro.logout') }}" class="btn btn-outline-danger btn-sm w-100 py-1" style="font-size: 0.75rem;">
+            <a href="{{ session('es_admin') ? route('admin.metro.logout') : route('metro.logout') }}" class="btn btn-outline-danger btn-sm w-100 py-1" style="font-size: 0.75rem;">
                 <i class="bi bi-box-arrow-right me-1"></i> Cerrar Sesión
             </a>
         @else
-            <a href="{{ route('metro.login') }}" class="btn btn-outline-success btn-sm w-100 py-1" style="font-size: 0.75rem;">
+            <a href="{{ request()->is('admin*') ? route('admin.metro.login') : route('metro.login') }}" class="btn btn-outline-success btn-sm w-100 py-1" style="font-size: 0.75rem;">
                 <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión
             </a>
         @endif

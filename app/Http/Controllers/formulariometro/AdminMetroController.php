@@ -24,15 +24,52 @@ use Illuminate\Http\Request;
 
 class AdminMetroController extends Controller
 {
+    public function loginView()
+    {
+        if (session('cedula_usuario') && session('es_admin')) {
+            return redirect()->route('admin.metro.solicitudes');
+        }
+
+        return view('formulariometro.admin.login');
+    }
+
+    public function loginPost(Request $request)
+    {
+        $request->validate([
+            'documento' => 'required|string|max:20',
+        ], [
+            'documento.required' => 'Por favor ingresa tu número de documento.',
+        ]);
+
+        $documento = trim($request->documento);
+        $cedulasAdmin = ['1001663829'];
+
+        if (!in_array($documento, $cedulasAdmin)) {
+            return redirect()->route('admin.metro.login')->with('error', 'Acceso denegado: este documento no cuenta con permisos de administrador.');
+        }
+
+        session([
+            'cedula_usuario' => $documento,
+            'es_admin' => true,
+        ]);
+
+        return redirect()->route('admin.metro.solicitudes');
+    }
+
+    public function logout()
+    {
+        session()->forget(['cedula_usuario', 'es_admin']);
+        return redirect()->route('admin.metro.login')->with('info', 'Sesión cerrada correctamente.');
+    }
+
     public function index(Request $request)
     {
-        // TODO: reemplazar esta validación por un middleware de autenticación y roles real (ej: auth, role:admin o Spatie)
         if (!session('cedula_usuario')) {
-            return redirect()->route('metro.login')->with('info', 'Por favor ingresa tu número de documento para acceder.');
+            return redirect()->route('admin.metro.login')->with('info', 'Por favor ingresa con tu documento de administrador.');
         }
 
         if (!session('es_admin')) {
-            return redirect()->route('metro.inicio')->with('error', 'Acceso denegado: este módulo es exclusivo para administradores.');
+            return redirect()->route('admin.metro.login')->with('error', 'Acceso denegado: este módulo es exclusivo para administradores.');
         }
 
         $totalSolicitudes = MetroDatosPersonalesActual::count();
@@ -105,7 +142,7 @@ class AdminMetroController extends Controller
     public function validar($id)
     {
         if (!session('cedula_usuario') || !session('es_admin')) {
-            return redirect()->route('metro.inicio')->with('error', 'No tienes permisos de administrador.');
+            return redirect()->route('admin.metro.login')->with('error', 'No tienes permisos de administrador.');
         }
 
         $solicitud = MetroDatosPersonalesActual::with([
@@ -151,7 +188,8 @@ class AdminMetroController extends Controller
         $tiposVia = TipoVia::all();
         $orientaciones = Orientacion::all();
 
-        $soloConsulta = true;
+        $soloConsulta = false;
+        $modoAdmin = true;
         $sinSidebar = true;
 
         return view('formulariometro.formulario', compact(
@@ -172,8 +210,127 @@ class AdminMetroController extends Controller
             'registroExistente',
             'cedula',
             'soloConsulta',
+            'modoAdmin',
             'sinSidebar'
         ));
+    }
+
+    public function actualizarFormularioAdmin(Request $request, $id)
+    {
+        if (!session('cedula_usuario') || session('es_admin') !== true) {
+            abort(403, 'Acceso no autorizado.');
+        }
+
+        $solicitud = MetroDatosPersonalesActual::findOrFail($id);
+
+        $request->validate([
+            'motivo' => 'required|exists:t1_motivo_diligenciar_formulario,id',
+            'tipo_documento' => 'required|exists:t1_tipo_documento,id',
+            'documento' => 'required|string|max:20',
+            'primer_nombre' => 'required|string',
+            'segundo_nombre' => 'nullable|string',
+            'primer_apellido' => 'required|string',
+            'segundo_apellido' => 'nullable|string',
+            'genero' => 'required|exists:t1_genero,id',
+            'cual_genero' => 'nullable|string|max:45',
+            'fecha_nacimiento' => 'required|date',
+            'edad' => 'required|string',
+            'civica' => 'nullable|string|max:20',
+            'nombre_civica' => 'nullable|string|max:100',
+
+            'dirCampo1' => 'nullable|exists:t1_tipo_via,id',
+            'dirCampo2' => 'nullable|string|max:20',
+            'dirCampo3' => 'nullable|string|max:20',
+            'dirCampo4' => 'nullable|exists:t1_orientacion,id',
+            'dirCampo5' => 'nullable|string|max:20',
+            'dirCampo6' => 'nullable|string|max:20',
+            'dirCampo7' => 'nullable|exists:t1_orientacion,id',
+            'dirCampo8' => 'nullable|string|max:20',
+            'dirCampo9' => 'nullable|string',
+            'direccion' => 'nullable|string',
+
+            'municipio' => 'required|exists:t1_municipio,id',
+            'comuna' => 'nullable|exists:t1_comuna,id',
+            'barrio' => 'nullable|exists:t1_barrio,id',
+            'OtroBarrio' => 'nullable|string|max:200',
+            'estrato' => 'required|exists:t1_estrato,id',
+            'puntajeSisben' => 'nullable|exists:t1_sisben,id',
+            'discapacidad' => 'required|exists:t1_sino,id',
+            'tipo_discapacidad' => 'nullable|exists:t1_tipo_discapacidad,id',
+
+            'correo' => 'required|email',
+            'celular' => 'required|string',
+            'telefonoFijo' => 'nullable|string',
+
+            'nivel_academico' => 'required|exists:t1_nivel_academico,id',
+            'grado' => 'nullable|exists:t1_grado,id',
+            'semestre' => 'nullable|integer',
+            'fondo' => 'required|exists:t1_fondo,id',
+        ]);
+
+        $direccion = $request->filled('direccion')
+            ? trim($request->direccion)
+            : trim(implode(' ', array_filter([
+                $request->dirCampo2, $request->dirCampo3, $request->dirCampo5,
+                $request->dirCampo6, $request->dirCampo8, $request->dirCampo9,
+            ])));
+
+        $camposPermitidos = [
+            'primer_nombre',
+            'segundo_nombre',
+            'primer_apellido',
+            'segundo_apellido',
+            'tipo_documento',
+            'documento',
+            'dirCampo1',
+            'dirCampo2',
+            'dirCampo3',
+            'dirCampo4',
+            'dirCampo5',
+            'dirCampo6',
+            'dirCampo7',
+            'dirCampo8',
+            'dirCampo9',
+            'direccion',
+            'municipio',
+            'comuna',
+            'barrio',
+            'OtroBarrio',
+            'estrato',
+            'puntajeSisben',
+            'genero',
+            'cual_genero',
+            'fecha_nacimiento',
+            'edad',
+            'civica',
+            'nombre_civica',
+            'nivel_academico',
+            'grado',
+            'semestre',
+            'fondo',
+            'correo',
+            'celular',
+            'telefonoFijo',
+            'discapacidad',
+            'tipo_discapacidad',
+            'motivo',
+        ];
+
+        $datosFiltrados = $request->only($camposPermitidos);
+        if (!empty($direccion)) {
+            $datosFiltrados['direccion'] = $direccion;
+        }
+
+        $solicitud->update($datosFiltrados);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'mensaje' => 'Datos actualizados correctamente.',
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Datos actualizados correctamente.');
     }
 
     public function revisarAdjunto(Request $request, $id)
@@ -233,7 +390,7 @@ class AdminMetroController extends Controller
     public function guardarDecision(Request $request, $id)
     {
         if (!session('cedula_usuario') || !session('es_admin')) {
-            return redirect()->route('metro.inicio')->with('error', 'No autorizado.');
+            return redirect()->route('admin.metro.login')->with('error', 'No autorizado.');
         }
 
         $request->validate([
@@ -353,7 +510,7 @@ class AdminMetroController extends Controller
     public function cambiarEstado(Request $request, $id)
     {
         if (!session('cedula_usuario') || !session('es_admin')) {
-            return redirect()->route('metro.inicio')->with('error', 'No tienes permisos para realizar esta acción.');
+            return redirect()->route('admin.metro.login')->with('error', 'No tienes permisos para realizar esta acción.');
         }
 
         $request->validate([

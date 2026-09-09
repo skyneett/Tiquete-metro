@@ -13,6 +13,10 @@ Route::get('/formulario-metro', [TiqueteMetroController::class, 'create'])->name
 Route::post('/formulario-metro', [TiqueteMetroController::class, 'store'])->name('metro.store');
 Route::get('/api/barrios-por-comuna/{comuna}', [TiqueteMetroController::class, 'getBarriosPorComuna'])->name('metro.barrios');
 
+Route::get('/admin/login-metro', [AdminMetroController::class, 'loginView'])->name('admin.metro.login');
+Route::post('/admin/login-metro', [AdminMetroController::class, 'loginPost'])->name('admin.metro.login.post');
+Route::get('/admin/logout-metro', [AdminMetroController::class, 'logout'])->name('admin.metro.logout');
+
 // TODO: envolver en middleware(['auth', 'role:admin']) cuando se implemente el sistema de roles real.
 Route::get('/admin/solicitudes-metro', [AdminMetroController::class, 'index'])->name('admin.metro.solicitudes');
 Route::get('/admin/solicitudes-metro/data', [AdminMetroController::class, 'listadoJson'])->name('admin.metro.solicitudes.data');
@@ -23,4 +27,6 @@ Route::get('/admin/ver-formulario/{id}', [AdminMetroController::class, 'verFormu
 Route::post('/admin/revisar-adjunto/{id}', [AdminMetroController::class, 'revisarAdjunto'])->name('admin.metro.revisar-adjunto');
 Route::post('/admin/validar-solicitud/{id}/decision', [AdminMetroController::class, 'guardarDecision'])->name('admin.metro.guardar-decision');
 Route::post('/admin/finalizar-revision/{id}', [AdminMetroController::class, 'finalizarRevision'])->name('admin.metro.finalizar-revision');
+Route::put('/admin/solicitud/{id}/actualizar-formulario', [AdminMetroController::class, 'actualizarFormularioAdmin'])->name('admin.metro.actualizar-formulario');
+
 

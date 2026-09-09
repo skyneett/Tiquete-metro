@@ -25,11 +25,17 @@ use App\Models\formulariometro\MetroDatosPersonalesActual;
 class TiqueteMetroController extends Controller
 {
     // TODO: reemplazar esta lista fija por una consulta real de roles 
-    // cuando se implemente el sistema de autenticación/roles definitivo.
-    private const CEDULAS_ADMIN = ['1001663829']; // ejemplo, ajustar
+    public const CEDULAS_ADMIN = ['1001663829'];
 
     public function loginView()
     {
+        if (session('cedula_usuario')) {
+            if (session('es_admin')) {
+                return redirect()->route('admin.metro.solicitudes');
+            }
+            return redirect()->route('metro.create');
+        }
+
         return view('formulariometro.login');
     }
 
@@ -47,7 +53,7 @@ class TiqueteMetroController extends Controller
             'es_admin' => in_array($documento, self::CEDULAS_ADMIN),
         ]);
 
-        return redirect()->route('metro.inicio');
+        return redirect()->route('metro.create');
     }
 
     public function inicioView()
@@ -55,12 +61,14 @@ class TiqueteMetroController extends Controller
         $cedula = $this->obtenerCedula();
 
         if (!$cedula) {
-            return redirect()->route('metro.login')->with('info', 'Por favor ingresa tu número de documento para acceder al portal.');
+            return redirect()->route('metro.login')->with('info', 'Por favor ingresa tu número de documento para acceder al formulario.');
         }
 
-        $registroExistente = MetroDatosPersonalesActual::where('documento', $cedula)->first();
+        if (session('es_admin')) {
+            return redirect()->route('admin.metro.solicitudes');
+        }
 
-        return view('formulariometro.inicio', compact('cedula', 'registroExistente'));
+        return redirect()->route('metro.create');
     }
 
     public function logout()

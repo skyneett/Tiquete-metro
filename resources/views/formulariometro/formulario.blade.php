@@ -40,11 +40,13 @@
                     <span class="badge bg-secondary ms-1">Nuevo Registro</span>
                 @endif
             </span>
+            @if (empty($modoAdmin))
             <div class="mt-1">
                 <a href="{{ route('metro.logout') }}" class="small text-danger text-decoration-none">
                     Cambiar documento / Salir
                 </a>
             </div>
+            @endif
         </div>
     @else
         <div class="text-end">
@@ -59,7 +61,7 @@
     <div class="alert alert-success">{{ session('success') }}</div>
 @endif
 
-@if ($registroExistente)
+@if ($registroExistente && empty($modoAdmin))
     <div class="alert alert-info d-flex align-items-center" role="alert">
         <div>
             <strong>¡Bienvenido de nuevo!</strong> Hemos cargado los datos que tenías guardados para el documento <strong>{{ $cedula }}</strong>. Puedes revisarlos, modificarlos y presionar <em>"Enviar Solicitud"</em> para guardar los cambios.
@@ -87,8 +89,11 @@
     </div>
 @endif
 
-<form action="{{ route('metro.store') }}" method="POST" enctype="multipart/form-data" id="formularioMetro" class="was-validated">
+<form action="{{ (!empty($modoAdmin) && isset($registroExistente)) ? route('admin.metro.actualizar-formulario', $registroExistente->id) : route('metro.store') }}" method="POST" enctype="multipart/form-data" id="formularioMetro" class="was-validated">
     @csrf
+    @if (!empty($modoAdmin))
+        @method('PUT')
+    @endif
     <input type="hidden" name="periodo" value="17">
     <fieldset {{ !empty($soloConsulta) ? 'disabled' : '' }}>
 
@@ -372,21 +377,23 @@
         <input type="text" name="civica" class="form-control" value="{{ old('civica', $registroExistente->civica ?? '') }}">
     </div>
 
-    <h6 class="mt-4">Documentos adjuntos</h6>
-    <div class="d-flex flex-wrap gap-2 mb-2">
-        <button type="button" class="btn {{ (!empty($registroExistente?->archivo_documento_identidad)) ? 'btn-success' : 'btn-outline-success' }}" id="btnModalIdentidad" data-bs-toggle="modal" data-bs-target="#modalIdentidad">
-            {{ (!empty($registroExistente?->archivo_documento_identidad)) ? '✓ Identidad cargado' : 'Adjuntar copia de documento de identidad' }}
-        </button>
-        <button type="button" class="btn {{ (!empty($registroExistente?->archivo_servicios_publicos)) ? 'btn-success' : 'btn-outline-success' }}" id="btnModalServicios" data-bs-toggle="modal" data-bs-target="#modalServicios">
-            {{ (!empty($registroExistente?->archivo_servicios_publicos)) ? '✓ Servicios cargado' : 'Copia de servicios públicos domiciliarios' }}
-        </button>
-        <button type="button" class="btn {{ (!empty($registroExistente?->archivo_tarjeta_civica)) ? 'btn-success' : 'btn-outline-success' }}" id="btnModalCivica" data-bs-toggle="modal" data-bs-target="#modalCivica">
-            {{ (!empty($registroExistente?->archivo_tarjeta_civica)) ? '✓ Cívica cargada' : 'Copia de Tarjeta Cívica' }}
-        </button>
-        <button type="button" class="btn {{ (!empty($registroExistente?->archivo_certificado_discapacidad)) ? 'btn-success' : 'btn-outline-success' }}" id="btnCertificado" data-bs-toggle="modal" data-bs-target="#modalCertificado" style="display:none;">
-            {{ (!empty($registroExistente?->archivo_certificado_discapacidad)) ? '✓ Discapacidad cargada' : 'Certificado de discapacidad o historia clínica' }}
-        </button>
-    </div>
+    @if (!($modoAdmin ?? false))
+        <h6 class="mt-4">Documentos adjuntos</h6>
+        <div class="d-flex flex-wrap gap-2 mb-2">
+            <button type="button" class="btn {{ (!empty($registroExistente?->archivo_documento_identidad)) ? 'btn-success' : 'btn-outline-success' }}" id="btnModalIdentidad" data-bs-toggle="modal" data-bs-target="#modalIdentidad">
+                {{ (!empty($registroExistente?->archivo_documento_identidad)) ? '✓ Identidad cargado' : 'Adjuntar copia de documento de identidad' }}
+            </button>
+            <button type="button" class="btn {{ (!empty($registroExistente?->archivo_servicios_publicos)) ? 'btn-success' : 'btn-outline-success' }}" id="btnModalServicios" data-bs-toggle="modal" data-bs-target="#modalServicios">
+                {{ (!empty($registroExistente?->archivo_servicios_publicos)) ? '✓ Servicios cargado' : 'Copia de servicios públicos domiciliarios' }}
+            </button>
+            <button type="button" class="btn {{ (!empty($registroExistente?->archivo_tarjeta_civica)) ? 'btn-success' : 'btn-outline-success' }}" id="btnModalCivica" data-bs-toggle="modal" data-bs-target="#modalCivica">
+                {{ (!empty($registroExistente?->archivo_tarjeta_civica)) ? '✓ Cívica cargada' : 'Copia de Tarjeta Cívica' }}
+            </button>
+            <button type="button" class="btn {{ (!empty($registroExistente?->archivo_certificado_discapacidad)) ? 'btn-success' : 'btn-outline-success' }}" id="btnCertificado" data-bs-toggle="modal" data-bs-target="#modalCertificado" style="display:none;">
+                {{ (!empty($registroExistente?->archivo_certificado_discapacidad)) ? '✓ Discapacidad cargada' : 'Certificado de discapacidad o historia clínica' }}
+            </button>
+        </div>
+    @endif
 
     <div id="archivos_seleccionados" class="mb-4 small">
         <span class="badge bg-light text-dark border me-2" id="badge_doc" style="{{ !empty($registroExistente?->archivo_documento_identidad) ? 'display:inline-block;' : 'display:none;' }}">
@@ -447,16 +454,22 @@
     <p class="small fw-bold">PARÁGRAFO: con la suscripción de este formulario se entiende aceptada la finalidad del tratamiento de datos y que conoce los mecanismos para su protección.</p>
 
     <div class="form-check my-4">
-        <input class="form-check-input" type="checkbox" name="acepta" id="acepta" value="1" required {{ old('acepta', $registroExistente->acepta ?? 0) ? 'checked' : '' }}>
+        <input class="form-check-input" type="checkbox" name="acepta" id="acepta" value="1" {{ !empty($modoAdmin) ? 'disabled' : 'required' }} {{ old('acepta', $registroExistente->acepta ?? 1) ? 'checked' : '' }}>
         <label class="form-check-label" for="acepta">Acepto</label>
     </div>
 
     </fieldset>
 
     @if (empty($soloConsulta))
-        <button type="submit" class="btn btn-primary btn-lg">
-            {{ (isset($registroExistente) && $registroExistente) ? 'Actualizar Solicitud' : 'Enviar Solicitud' }}
-        </button>
+        @if (!empty($modoAdmin))
+            <button type="submit" id="btnGuardarAdmin" class="btn btn-primary btn-lg shadow-sm">
+                <i class="bi bi-floppy-fill me-1"></i> Guardar Cambios del Formulario
+            </button>
+        @else
+            <button type="submit" class="btn btn-primary btn-lg">
+                {{ (isset($registroExistente) && $registroExistente) ? 'Actualizar Solicitud' : 'Enviar Solicitud' }}
+            </button>
+        @endif
     @endif
 </form>
 
@@ -668,12 +681,12 @@ document.addEventListener('DOMContentLoaded', function () {
         if (discSelect.value === '1' || desc === 'SI') {
             tipoDiscWrapper.style.display = 'block';
             tipoDiscInput.required = true;
-            btnCertificado.style.display = 'inline-block';
+            if (btnCertificado) btnCertificado.style.display = 'inline-block';
         } else {
             tipoDiscWrapper.style.display = 'none';
             tipoDiscInput.required = false;
             tipoDiscInput.value = '';
-            btnCertificado.style.display = 'none';
+            if (btnCertificado) btnCertificado.style.display = 'none';
         }
     }
     discSelect.addEventListener('change', toggleDiscapacidad);
@@ -769,6 +782,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // 7. Autoguardado y recuperación de borrador en localStorage (asociado a la cédula activa)
+    @if (empty($modoAdmin))
     const cedulaActiva = "{{ $cedula ?? '' }}";
     const claveBorrador = cedulaActiva ? ('borrador_tiquete_metro_' + cedulaActiva) : 'borrador_tiquete_metro';
 
@@ -793,6 +807,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Error al leer borrador:', e);
             }
         }
+    @endif
     @endif
 
     const formMetroEl = document.getElementById('formularioMetro') || document.querySelector('form');
@@ -953,7 +968,7 @@ function borradorTieneContenido(datos) {
 }
 
 function guardarBorrador() {
-    @if (!empty($soloConsulta)) return; @endif
+    @if (!empty($soloConsulta) || !empty($modoAdmin)) return; @endif
     const form = document.getElementById('formularioMetro') || document.querySelector('form');
     if (!form) return;
 
@@ -1046,4 +1061,83 @@ function restaurarBorrador(datos) {
     }
 }
 </script>
+
+@if (!empty($modoAdmin))
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const formMetro = document.getElementById('formularioMetro');
+    if (formMetro) {
+        formMetro.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            if (!formMetro.checkValidity()) {
+                formMetro.classList.add('was-validated');
+                return;
+            }
+
+            const btnSubmit = document.getElementById('btnGuardarAdmin');
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Guardando cambios...';
+            }
+
+            const formData = new FormData(formMetro);
+
+            fetch(formMetro.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: formData
+            })
+            .then(async res => {
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    let errorMsg = data.message || data.error;
+                    if (data.errors) {
+                        errorMsg = Object.values(data.errors).flat().join('<br>');
+                    }
+                    throw new Error(errorMsg || 'Error al guardar los cambios.');
+                }
+                return data;
+            })
+            .then(data => {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: '¡Cambios Guardados!',
+                        text: data.mensaje || 'Datos actualizados correctamente.',
+                        icon: 'success',
+                        confirmButtonText: 'Aceptar',
+                        confirmButtonColor: '#198754'
+                    });
+                } else {
+                    alert(data.mensaje || 'Datos actualizados correctamente.');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Error de Validación',
+                        html: err.message || 'Ocurrió un error al actualizar los datos.',
+                        icon: 'error',
+                        confirmButtonColor: '#dc3545'
+                    });
+                } else {
+                    alert(err.message || 'Ocurrió un error al actualizar los datos.');
+                }
+            })
+            .finally(() => {
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = '<i class="bi bi-floppy-fill me-1"></i> Guardar Cambios del Formulario';
+                }
+            });
+        });
+    }
+});
+</script>
+@endif
 @endsection

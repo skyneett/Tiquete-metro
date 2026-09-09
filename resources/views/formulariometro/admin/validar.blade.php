@@ -58,9 +58,9 @@
         <div class="tab-content" id="tabsValidacionContent">
             <!-- PESTAÑA 1: REVISAR FORMULARIO (IFRAME) -->
             <div class="tab-pane fade show active" id="tab-formulario" role="tabpanel">
-                <div class="alert alert-light border d-flex justify-content-between align-items-center py-2 px-3 mb-3">
-                    <span class="small text-muted">
-                        <i class="bi bi-info-circle me-1"></i> Visualización completa del formulario en modo de solo lectura.
+                <div class="d-flex justify-content-between align-items-center py-2 px-1 mb-2">
+                    <span class="small text-muted fw-semibold">
+                        <i class="bi bi-file-earmark-person me-1"></i> Formulario de postulación del estudiante
                     </span>
                     <a href="{{ route('admin.metro.ver-formulario', $solicitud->id) }}" target="_blank" class="btn btn-outline-secondary btn-sm" style="font-size: 0.75rem;">
                         <i class="bi bi-box-arrow-up-right me-1"></i> Abrir en ventana independiente
