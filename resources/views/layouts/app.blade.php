@@ -94,7 +94,7 @@
     </style>
 </head>
 <body>
-    @if (!request()->routeIs('metro.login') && !request()->routeIs('admin.metro.ver-formulario') && empty($sinSidebar))
+    @if (!request()->routeIs('metro.login') && !request()->routeIs('admin.metro.login') && !request()->routeIs('admin.metro.ver-formulario') && empty($sinSidebar))
         @include('formulariometro.partials.sidebar')
         <main class="main-content">
             <div class="container-fluid">

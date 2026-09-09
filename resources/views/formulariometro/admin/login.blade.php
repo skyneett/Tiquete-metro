@@ -5,11 +5,6 @@
     <div class="col-md-6 col-lg-5">
         <div class="card shadow-sm border-0 mt-5">
             <div class="card-header text-white text-center py-4" style="background-color: #0f172a;">
-                <div class="mb-2">
-                    <span class="badge bg-primary px-3 py-1 text-uppercase" style="letter-spacing: 0.05em; font-size: 0.7rem;">
-                        Módulo Administrativo
-                    </span>
-                </div>
                 <h4 class="mb-0 fw-bold">Sapiencia - Tiquete Metro</h4>
                 <small class="text-white-50">Panel de Auditoría y Validación de Solicitudes</small>
             </div>
