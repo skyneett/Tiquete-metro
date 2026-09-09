@@ -26,10 +26,6 @@ class AdminMetroController extends Controller
 {
     public function loginView()
     {
-        if (session('cedula_usuario') && session('es_admin')) {
-            return redirect()->route('admin.metro.solicitudes');
-        }
-
         return view('formulariometro.admin.login');
     }
 

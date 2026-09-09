@@ -29,13 +29,6 @@ class TiqueteMetroController extends Controller
 
     public function loginView()
     {
-        if (session('cedula_usuario')) {
-            if (session('es_admin')) {
-                return redirect()->route('admin.metro.solicitudes');
-            }
-            return redirect()->route('metro.create');
-        }
-
         return view('formulariometro.login');
     }
 
