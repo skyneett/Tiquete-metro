@@ -88,6 +88,7 @@ class TiqueteMetroController extends Controller
         }
 
         $registroExistente = MetroDatosPersonalesActual::where('documento', $cedula)->first();
+        $motivoAutomatico = $registroExistente ? 2 : 1;
 
         $motivos = MotivoDiligenciarFormulario::all();
         $tiposDocumento = TipoDocumento::all();
@@ -107,6 +108,7 @@ class TiqueteMetroController extends Controller
         return view('formulariometro.formulario', compact(
             'cedula',
             'registroExistente',
+            'motivoAutomatico',
             'motivos',
             'tiposDocumento',
             'generos',
@@ -132,6 +134,23 @@ class TiqueteMetroController extends Controller
 
     public function store(Request $request)
     {
+        // Motivo automático: si ya existe en la base de datos es 2 (Actualización), de lo contrario 1 (Solicitar beneficio)
+        $existePrevio = MetroDatosPersonalesActual::where('documento', $request->documento)->exists();
+        $motivoAutomatico = $existePrevio ? 2 : 1;
+        $request->merge(['motivo' => $motivoAutomatico]);
+
+        // Validación de edad según excepción de discapacidad (10 a 28 años estándar, hasta 100 con discapacidad)
+        $esDiscapacitado = false;
+        if ($request->filled('discapacidad')) {
+            $sinoObj = Sino::find($request->discapacidad);
+            if ($sinoObj && strtoupper(trim($sinoObj->descripcion)) === 'SI') {
+                $esDiscapacitado = true;
+            }
+        }
+        $reglaFechaNacimiento = $esDiscapacitado
+            ? 'required|date|after_or_equal:' . now()->subYears(100)->format('Y-m-d') . '|before_or_equal:' . now()->subYears(10)->format('Y-m-d')
+            : 'required|date|after_or_equal:' . now()->subYears(28)->format('Y-m-d') . '|before_or_equal:' . now()->subYears(10)->format('Y-m-d');
+
         $validated = $request->validate([
             'motivo' => 'required|exists:t1_motivo_diligenciar_formulario,id',
             'tipo_documento' => 'required|exists:t1_tipo_documento,id',
@@ -142,9 +161,9 @@ class TiqueteMetroController extends Controller
             'segundo_nombre' => 'nullable|string',
             'primer_apellido' => 'required|string',
             'segundo_apellido' => 'nullable|string',
-            'civica' => 'nullable|string|max:20',
-            'nombre_civica' => 'nullable|string|max:100',
-            'fecha_nacimiento' => 'required|date|after_or_equal:' . now()->subYears(100)->format('Y-m-d') . '|before_or_equal:' . now()->subYears(15)->format('Y-m-d'),
+            'civica' => 'required|string|max:20',
+            'nombre_civica' => 'required|string|max:100',
+            'fecha_nacimiento' => $reglaFechaNacimiento,
             'edad' => 'required|string',
 
             'dirCampo1' => 'nullable|exists:t1_tipo_via,id',

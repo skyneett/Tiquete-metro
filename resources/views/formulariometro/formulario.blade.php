@@ -4,28 +4,41 @@
 
 <h2 class="text-center mb-4">SOLICITUD PERFIL ESTUDIANTIL (TIQUETE METRO)</h2>
 
-<div class="card mb-4">
-    <div class="card-body">
-        <p>Si cumples con estos requisitos puedes aplicar al beneficio:</p>
-        <ul>
-            <li>Si eres beneficiario de Sapiencia, ya sea por medio de Fondos en programas de pregrado o posgrado, o a través de la Matrícula Cero, tienes la posibilidad de acceder al perfil preferencial estudiantil en tu tarjeta cívica del Metro de Medellín.</li>
-            <li>Residir en viviendas de estratos 1, 2 y 3.</li>
-            <li>Tener entre 10 y hasta 28 años en el momento de la inscripción, o ser una persona con discapacidad.</li>
+<div class="card mb-4 border-0 shadow-sm" style="border-radius: 8px;">
+    <div class="card-body p-4">
+        <h5 class="fw-bold text-success mb-3"><i class="bi bi-card-checklist me-2"></i>Requisitos para solicitar el beneficio:</h5>
+        <p class="mb-2">Puedes solicitar el beneficio de <strong>Perfil Estudiantil</strong> en tu tarjeta Cívica si cumples con los siguientes requisitos:</p>
+        <ul class="mb-3">
+            <li>Ser beneficiario activo de Sapiencia a través de alguno de los Fondos de Pregrado o Posgrado, de los programas de Becas o del programa Matrícula Cero.</li>
+            <li>Residir en una vivienda de estrato 1, 2 o 3.</li>
+            <li>Tener entre 10 y 28 años al momento de realizar la inscripción por primera vez o para la renovación del beneficio. Este requisito de edad no aplica para las personas con discapacidad, quienes al momento de diligenciar el formulario deben acreditar su discapacidad a través de certificado expedido por entidad respectiva.</li>
         </ul>
 
-        <p>Es importante aclarar que, dentro de los medios de transporte que cubre este beneficio, se encuentran todos aquellos en los cuales se hace uso de la tarjeta cívica de los vehículos del sistema de Transporte masivo, de la Empresa Metro de Medellín Ltda:</p>
-        <ul>
-            <li>Metro</li>
-            <li>Metro Cable</li>
-            <li>MetroPlus</li>
-            <li>Rutas Alimentadoras</li>
-            <li>Tranvía</li>
+        <h6 class="fw-bold text-dark mt-3 mb-2"><i class="bi bi-train-front me-2 text-success"></i>¿En qué medios de transporte aplica el beneficio?</h6>
+        <p class="mb-2">El Perfil Estudiantil aplica en los siguientes medios de transporte del Sistema Metro de Medellín en los que se utiliza la tarjeta Cívica:</p>
+        <ul class="mb-2">
+            <li>Metro.</li>
+            <li>Metrocable.</li>
+            <li>Metroplús.</li>
+            <li>Rutas alimentadoras.</li>
+            <li>Tranvía.</li>
         </ul>
-        <p>Se exceptúan las rutas integradas, las cuales hacen un recorrido desde los barrios hasta las estaciones de la red Metro. No aplican dado que éstos pertenecen a empresas privadas que prestan el servicio de articulación a la red del sistema Metro.</p>
+        <div class="alert alert-warning py-2 px-3 small mb-3 border-0" style="border-left: 4px solid #f59e0b !important;">
+            <strong>Importante:</strong> El beneficio <strong>no aplica</strong> para las rutas integradas operadas por empresas privadas que conectan diferentes sectores de la ciudad con las estaciones del Sistema Metro.
+        </div>
 
-        <p class="fst-italic small">Nota: Sapiencia solo hace el reporte de la presente solicitud a la SECRETARIA DE EDUCACIÓN DEL DISTRITO ESPECIAL DE CIENCIA, TECNOLOGÍA E INNOVACIÓN DE MEDELLÍN y posteriormente son ellos quienes hacen la validación final de requisitos y reportan oficialmente al METRO. CIRCULAR NÚMERO 202460000077 DE 02/04/2024</p>
+        <div class="p-3 bg-light rounded border">
+            <h6 class="fw-bold text-secondary mb-1"><i class="bi bi-info-circle me-1"></i> Ten en cuenta:</h6>
+            <ul class="mb-0 small text-muted">
+                <li>El diligenciamiento de este formulario no implica la aprobación automática del beneficio.</li>
+                <li>Sapiencia realiza el reporte de las inscripciones recibidas a la Secretaría de Educación del Distrito Especial de Ciencia, Tecnología e Innovación de Medellín. Posteriormente, dicha entidad realiza la validación final del cumplimiento de los requisitos y reporta la información correspondiente al Metro de Medellín.</li>
+                <li>Lo anterior, de conformidad con la Circular N° 202460000077 del 2 de abril de 2024.</li>
+            </ul>
+        </div>
+    </div>
+</div>
 
-        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+<div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
     <div>
         <h4 class="mb-0 text-success fw-bold">PERFIL ESTUDIANTIL (TIQUETE METRO)</h4>
         <small class="text-muted">Formulario oficial de postulación y actualización</small>
@@ -35,7 +48,7 @@
             <span class="badge bg-light text-dark border px-3 py-2">
                 <i class="bi bi-person-circle"></i> Documento: <strong>{{ $cedula }}</strong>
                 @if ($registroExistente)
-                    <span class="badge bg-primary ms-1">Modo Edición</span>
+                    <span class="badge bg-primary ms-1">Modo Actualización</span>
                 @else
                     <span class="badge bg-secondary ms-1">Nuevo Registro</span>
                 @endif
@@ -97,14 +110,24 @@
     <input type="hidden" name="periodo" value="17">
     <fieldset {{ !empty($soloConsulta) ? 'disabled' : '' }}>
 
+    <!-- Motivo del diligenciamiento: Automático según existencia del documento -->
     <div class="mb-3">
-        <label class="form-label">¿Por qué vas a diligenciar el formulario?</label>
-        <select name="motivo" class="form-select" required>
-            <option value="">Seleccionar</option>
-            @foreach ($motivos as $motivo)
-                <option value="{{ $motivo->id }}" {{ old('motivo', $registroExistente->motivo ?? '') == $motivo->id ? 'selected' : '' }}>{{ $motivo->descripcion }}</option>
-            @endforeach
-        </select>
+        <label class="form-label fw-bold">Motivo del diligenciamiento <span class="text-danger">*</span></label>
+        <input type="hidden" name="motivo" value="{{ $motivoAutomatico ?? (isset($registroExistente) && $registroExistente ? 2 : 1) }}">
+        <div class="input-group">
+            <span class="input-group-text bg-white">
+                <i class="bi {{ (isset($registroExistente) && $registroExistente) ? 'bi-arrow-repeat text-primary' : 'bi-plus-circle text-success' }}"></i>
+            </span>
+            <input type="text" class="form-control bg-light fw-semibold" readonly 
+                   value="{{ (isset($registroExistente) && $registroExistente) ? 'ACTUALIZAR INFORMACIÓN' : 'SOLICITAR BENEFICIO' }}">
+        </div>
+        <div class="form-text small">
+            @if (isset($registroExistente) && $registroExistente)
+                <i class="bi bi-info-circle text-primary me-1"></i> <strong>Automático:</strong> Tu documento ya se encuentra en la base de datos; el formulario ha sido rellenado con tu información registrada para actualización de datos.
+            @else
+                <i class="bi bi-info-circle text-success me-1"></i> <strong>Automático:</strong> Tu documento no registra solicitudes previas; se tramitará como solicitud del beneficio por primera vez.
+            @endif
+        </div>
     </div>
 
     <div class="row mb-3">
@@ -143,8 +166,8 @@
     </div>
 
     <div class="mb-3">
-        <label class="form-label">NOMBRES Y APELLIDOS (como esta marcada la CÍVICA)</label>
-        <input type="text" name="nombre_civica" class="form-control" value="{{ old('nombre_civica', $registroExistente->nombre_civica ?? '') }}">
+        <label class="form-label">NOMBRES Y APELLIDOS (como esta marcada la CÍVICA) <span class="text-danger">*</span></label>
+        <input type="text" name="nombre_civica" class="form-control" value="{{ old('nombre_civica', $registroExistente->nombre_civica ?? '') }}" required>
     </div>
 
     <div class="row mb-3">
@@ -342,7 +365,7 @@
     </div>
 
     <div class="mb-3">
-        <label class="form-label">¿Qué beneficio tiene activo con Sapiencia?</label>
+        <label class="form-label">Secretaría / Fondo al que pertenece <span class="text-danger">*</span></label>
         <select name="fondo" class="form-select" required>
             <option value="">Seleccionar</option>
             @foreach ($fondos as $f)
@@ -353,7 +376,7 @@
 
     <div class="row mb-3">
         <div class="col-md-6">
-            <label class="form-label">¿Presenta discapacidad?</label>
+            <label class="form-label">¿Presenta discapacidad? <span class="text-danger">*</span></label>
             <select name="discapacidad" id="discapacidad" class="form-select" required>
                 <option value="">Seleccionar</option>
                 @foreach ($sinos as $s)
@@ -373,8 +396,8 @@
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Número de cívica personalizada</label>
-        <input type="text" name="civica" class="form-control" value="{{ old('civica', $registroExistente->civica ?? '') }}">
+        <label class="form-label">Número de cívica personalizada <span class="text-danger">*</span></label>
+        <input type="text" name="civica" class="form-control" value="{{ old('civica', $registroExistente->civica ?? '') }}" required>
     </div>
 
     @if (!($modoAdmin ?? false))
@@ -392,6 +415,9 @@
             <button type="button" class="btn {{ (!empty($registroExistente?->archivo_certificado_discapacidad)) ? 'btn-success' : 'btn-outline-success' }}" id="btnCertificado" data-bs-toggle="modal" data-bs-target="#modalCertificado" style="display:none;">
                 {{ (!empty($registroExistente?->archivo_certificado_discapacidad)) ? '✓ Discapacidad cargada' : 'Certificado de discapacidad o historia clínica' }}
             </button>
+        </div>
+        <div id="aviso_ayuda_discapacidad" class="small text-muted mb-2" style="display:none;">
+            <i class="bi bi-info-circle text-primary me-1"></i> Botón de <strong>Certificado de discapacidad</strong> habilitado al indicar que presentas discapacidad.
         </div>
     @endif
 
@@ -430,32 +456,54 @@
 
     <hr class="my-4">
 
-    <p class="small">Es importante señalar que todo estudiante que requiere del PERFIL ESTUDIANTIL (TIQUETE METRO) deberá tener la tarjeta cívica personalizada, ya que es a través de este documento, es asignado el beneficio. En caso que el estudiante realice cambio del tipo o del número de documento de identidad, deberá acercarse a los Puntos de Atención al Cliente -PAC- de La Empresa Metro de Medellín, para solicitar la actualización de su tarjeta cívica. En caso de pérdida o reposición de la tarjeta cívica, el estudiante deberá acercarse a un Punto de Atención al Cliente -PAC- del Metro de Medellín, para reportar su pérdida y realizar el trámite para la expedición de una nueva tarjeta cívica y necesariamente deberá reportar el cambio a Sapiencia, para que, en el siguiente informe, se envíe el reporte actualizado de la información del estudiante beneficiario.</p>
+    <!-- SECCIÓN: INFORMACIÓN DE LA TARJETA CÍVICA Y TRATAMIENTO DE DATOS PERSONALES -->
+    <div class="card border-0 bg-light p-4 mb-4 rounded shadow-sm">
+        <h6 class="fw-bold text-success mb-2"><i class="bi bi-credit-card-2-front me-2"></i>Información sobre la Tarjeta Cívica:</h6>
+        <ul class="small mb-3 text-muted">
+            <li class="mb-1">Para acceder al Perfil Estudiantil (Tiquete Metro) debes contar con una <strong>tarjeta Cívica personalizada y vigente</strong>, ya que el beneficio se asigna a través de esta.</li>
+            <li class="mb-1">Si realizas un cambio en el tipo o número de tu documento de identidad, debes actualizar esta información en un <strong>Punto de Atención al Cliente (PAC) del Metro de Medellín</strong> y en el formulario de inscripción / renovación según cada periodo de corte.</li>
+            <li>En caso de pérdida, reposición o cambio de tu tarjeta Cívica, deberás realizar el trámite en el metro (PAC) y posteriormente actualizar la información en Sapiencia diligenciando nuevamente el formulario cuando se encuentre disponible.</li>
+        </ul>
 
-    <p class="small">En observancia de la Ley 1581 de 2012, reglamentada parcialmente por el Decreto 1377 de 2013 y en la Política de uso y tratamiento de datos adoptado por SAPIENCIA, la importancia de la neutralidad de los medios tecnológicos y de comunicación, e interpretando todos estos de manera sistémica e integral en aras de la protección de los derechos y principios que circundan el Habeas Data y el Tratamiento de Datos Personales, se establecen las siguientes condiciones:</p>
+        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-shield-check me-2 text-primary"></i>Autorización para el tratamiento de datos personales:</h6>
+        <p class="small text-muted mb-2">
+            En cumplimiento de la Ley 1581 de 2012, las normas que la reglamenten modifiquen o sustituyan, y la Política de Tratamiento y Protección de Datos Personales de Sapiencia, autorizo a la Agencia de Educación Postsecundaria de Medellín – Sapiencia para recolectar, almacenar, consultar, actualizar, usar, circular y, cuando corresponda, transferir o transmitir mis datos personales para las siguientes finalidades:
+        </p>
+        <ul class="small text-muted mb-3">
+            <li>Gestionar mi solicitud de acceso o actualización del Perfil Estudiantil (Tiquete Metro).</li>
+            <li>Verificar el cumplimiento de los requisitos establecidos para acceder al beneficio.</li>
+            <li>Compartir la información necesaria con la Secretaría de Educación del Distrito Especial de Ciencia, Tecnología e Innovación de Medellín, el Metro de Medellín y demás entidades que intervengan en la validación, asignación o actualización del beneficio.</li>
+            <li>Contactarme para informar novedades, solicitar aclaraciones o comunicar información relacionada con mi solicitud.</li>
+            <li>Elaborar reportes, estadísticas e informes relacionados con la gestión del beneficio y atender los requerimientos de los organismos de control y demás autoridades competentes.</li>
+        </ul>
 
-    <p class="small fw-bold mb-1">FINALIDAD DEL TRATAMIENTO DE LOS DATOS PERSONALES PARA PERSONA JURÍDICA Y NATURAL:</p>
-    <p class="small">
-        a) el cumplimiento del lleno de requisitos formales para la suscripción de actas de compromiso y la posterior aplicación de los derechos y obligaciones que surgen entre las partes con ocasión de su suscripción.<br>
-        b) el cumplimiento de la Ley de Transparencia y el Derecho de Acceso a la Información Pública Nacional (Ley 1712 del 2014).<br>
-        c) La presentación de informes a los organismos de control.<br>
-        d) para la entrega de información a entidades cuyo objeto social y/o misional incluya la recolección de datos estadísticos, históricos y científicos.<br>
-        e) por solicitud de autoridad judicial. Manifiesto que me informaron que, si soy menor de edad y/o en caso de recolección de mi información sensible, tengo derecho a contestar o no las preguntas que me formulen y a entregar o no los datos solicitados. Entiendo que son datos sensibles aquellos que afectan la intimidad del titular o cuyo uso indebido pueda generar discriminación (información étnica, racial, su orientación política, convicciones religiosas o filosóficas, la pertenencia a sindicatos, organizaciones sociales, de derechos humanos, así como los relativos a la salud, vida sexual y datos biométricos).
-    </p>
-    <p class="small">Manifiesto que me informaron que los datos sensibles que se recolectarán serán utilizados para las finalidades descritas por la Agencia (Uso, recolección, actualización, transferencia)</p>
-    <p class="small fst-italic">Nota: Cualquier uso de la información distinto a lo aquí establecido, no es aceptado ni permitido por SAPIENCIA.</p>
+        <h6 class="fw-bold text-dark mb-1 small">Tratamiento de datos sensibles:</h6>
+        <p class="small text-muted mb-3">
+            Entiendo que algunos de los datos solicitados pueden tener la naturaleza de datos sensibles, como aquellos relacionados con condiciones de discapacidad o salud.
+            He sido informado de que no estoy obligado a autorizar el tratamiento de datos sensibles, salvo cuando su tratamiento sea necesario y se encuentre permitido por la normativa aplicable. Cuando suministre esta información, autorizo su tratamiento exclusivamente para las finalidades relacionadas con la gestión y validación de mi solicitud.
+        </p>
 
-    <p class="small fw-bold mb-1">AVISO DE PRIVACIDAD:</p>
-    <p class="small">Para los efectos de esta cláusula y del aviso de privacidad, se consideran datos sensibles aquellos que puedan revelar aspectos como origen racial o étnico, estado de salud presente y futura, información genética, creencias religiosas, filosóficas y morales, afiliación sindical, opiniones políticas, preferencia sexual y todos aquellos datos que puedan afectar la intimidad del titular o cuyo uso indebido pueda generar su discriminación. Respecto a estos SAPIENCIA se obliga al uso adecuado de los mismos en concordancia con la normativa vigente, la buena fe, el orden público y el presente Aviso.</p>
+        <h6 class="fw-bold text-dark mb-1 small">Derechos del titular de los datos:</h6>
+        <p class="small text-muted mb-2">
+            Como titular de mis datos personales, puedo ejercer, entre otros, los derechos a:
+        </p>
+        <ul class="small text-muted mb-2">
+            <li>Conocer, actualizar y rectificar mis datos personales.</li>
+            <li>Solicitar información sobre el uso que se ha dado a mis datos.</li>
+            <li>Solicitar prueba de la autorización otorgada, cuando corresponda.</li>
+            <li>Solicitar la supresión de mis datos o revocar la autorización cuando sea procedente.</li>
+            <li>Presentar consultas o reclamos relacionados con el tratamiento de mis datos personales.</li>
+        </ul>
+        <p class="small text-muted mb-3">
+            Para ejercer estos derechos puedo utilizar los canales de atención dispuestos por Sapiencia, consultar la Política de Tratamiento y Protección de Datos Personales en <a href="https://www.sapiencia.gov.co" target="_blank" class="text-decoration-none">www.sapiencia.gov.co</a>, escribir al correo <a href="mailto:info@sapiencia.gov.co" class="text-decoration-none">info@sapiencia.gov.co</a> o acudir a los demás canales oficiales habilitados por la entidad.
+        </p>
 
-    <p class="small fw-bold mb-1">MECANISMOS PARA LA PROTECCIÓN DE DATOS PERSONALES: ACCESO, RECTIFICACIÓN, CANCELACIÓN U OPOSICIÓN:</p>
-    <p class="small">la persona natural o jurídica Titular de Datos Personales puede solicitar a SAPIENCIA en cualquier momento, el acceso, la rectificación, la cancelación u oposición respecto a los datos personales que le conciernen, en este sentido, presentará su solicitud radicándola directamente en la Entidad o ingresando a la página web http://www.sapiencia.gov.co en la opción de Contáctenos o escribiendo al correo electrónico info@sapiencia.gov.co o comunicándose al teléfono en Medellín: (+57 4) 4447947.</p>
-
-    <p class="small fw-bold">PARÁGRAFO: con la suscripción de este formulario se entiende aceptada la finalidad del tratamiento de datos y que conoce los mecanismos para su protección.</p>
-
-    <div class="form-check my-4">
-        <input class="form-check-input" type="checkbox" name="acepta" id="acepta" value="1" {{ !empty($modoAdmin) ? 'disabled' : 'required' }} {{ old('acepta', $registroExistente->acepta ?? 1) ? 'checked' : '' }}>
-        <label class="form-check-label" for="acepta">Acepto</label>
+        <div class="form-check p-3 bg-white border rounded">
+            <input class="form-check-input ms-0 me-2" type="checkbox" name="acepta" id="acepta" value="1" {{ !empty($modoAdmin) ? 'disabled' : 'required' }} {{ old('acepta', $registroExistente->acepta ?? 1) ? 'checked' : '' }} required>
+            <label class="form-check-label fw-bold small text-dark" for="acepta">
+                He leído y comprendido la información anterior y autorizo el tratamiento de mis datos personales para las finalidades aquí descritas. <span class="text-danger">*</span>
+            </label>
+        </div>
     </div>
 
     </fieldset>
@@ -581,10 +629,25 @@ document.addEventListener('DOMContentLoaded', function () {
             edad--;
         }
 
-        if (edad < 15 || edad > 100) {
+        const discElem = document.getElementById('discapacidad');
+        const optDisc = discElem ? discElem.options[discElem.selectedIndex] : null;
+        const descDisc = optDisc ? (optDisc.getAttribute('data-desc') || optDisc.text).toUpperCase().trim() : '';
+        const esDiscapacitado = (discElem && (discElem.value === '1' || descDisc === 'SI'));
+
+        if (edad < 10) {
             edadInput.value = '';
             if (edadError) {
-                edadError.textContent = 'La edad debe estar entre 15 y 100 años.';
+                edadError.textContent = 'Debes tener al menos 10 años cumplidos para solicitar el beneficio.';
+            }
+        } else if (!esDiscapacitado && edad > 28) {
+            edadInput.value = '';
+            if (edadError) {
+                edadError.textContent = 'Debes tener entre 10 y 28 años al momento de la solicitud (a menos que presentes y acredites discapacidad).';
+            }
+        } else if (edad > 100) {
+            edadInput.value = '';
+            if (edadError) {
+                edadError.textContent = 'Por favor verifica la fecha de nacimiento ingresada.';
             }
         } else {
             edadInput.value = edad;
@@ -678,15 +741,21 @@ document.addEventListener('DOMContentLoaded', function () {
     function toggleDiscapacidad() {
         const opt = discSelect.options[discSelect.selectedIndex];
         const desc = opt ? (opt.getAttribute('data-desc') || opt.text).toUpperCase().trim() : '';
+        const avisoAyudaDisc = document.getElementById('aviso_ayuda_discapacidad');
         if (discSelect.value === '1' || desc === 'SI') {
             tipoDiscWrapper.style.display = 'block';
             tipoDiscInput.required = true;
             if (btnCertificado) btnCertificado.style.display = 'inline-block';
+            if (avisoAyudaDisc) avisoAyudaDisc.style.display = 'block';
         } else {
             tipoDiscWrapper.style.display = 'none';
             tipoDiscInput.required = false;
             tipoDiscInput.value = '';
             if (btnCertificado) btnCertificado.style.display = 'none';
+            if (avisoAyudaDisc) avisoAyudaDisc.style.display = 'none';
+        }
+        if (typeof calcularEdad === 'function') {
+            calcularEdad();
         }
     }
     discSelect.addEventListener('change', toggleDiscapacidad);

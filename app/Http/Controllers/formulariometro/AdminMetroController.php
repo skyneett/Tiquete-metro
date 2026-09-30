@@ -231,8 +231,8 @@ class AdminMetroController extends Controller
             'cual_genero' => 'nullable|string|max:45',
             'fecha_nacimiento' => 'required|date',
             'edad' => 'required|string',
-            'civica' => 'nullable|string|max:20',
-            'nombre_civica' => 'nullable|string|max:100',
+            'civica' => 'required|string|max:20',
+            'nombre_civica' => 'required|string|max:100',
 
             'dirCampo1' => 'nullable|exists:t1_tipo_via,id',
             'dirCampo2' => 'nullable|string|max:20',
